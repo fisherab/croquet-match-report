@@ -20,7 +20,7 @@
  * @subpackage Plugin_Name/includes
  * @author     Your Name <email@example.com>
  */
-class Plugin_Name_Deactivator {
+class Croquet_Match_Report_Deactivator {
 
 	/**
 	 * Short Description. (use period)

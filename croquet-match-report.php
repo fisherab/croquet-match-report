@@ -29,7 +29,7 @@ define( 'CROQUET_MATCH_REPORT_VERSION', '1.0.0' );
  */
 function activate_croquet_match_report() {
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-croquet-match-report-activator.php';
-	Plugin_Name_Activator::activate();
+	Croquet_Match_Report_Activator::activate();
 }
 
 /**
@@ -38,7 +38,7 @@ function activate_croquet_match_report() {
  */
 function deactivate_croquet_match_report() {
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-croquet-match-report-deactivator.php';
-	Plugin_Name_Deactivator::deactivate();
+	Croquet_Match_Report_Deactivator::deactivate();
 }
 
 register_activation_hook( __FILE__, 'activate_croquet_match_report' );
@@ -65,4 +65,4 @@ function run_croquet_match_report() {
 	$plugin->run();
 
 }
-run_plugin_name();
+run_croquet_match_report();

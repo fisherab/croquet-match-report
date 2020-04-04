@@ -29,7 +29,7 @@ class Croquet_Match_Report_Admin {
 	 * @access   private
 	 * @var      string    $plugin_name    The ID of this plugin.
 	 */
-	private $croquet_match_report;
+	private $plugin_name;
 
 	/**
 	 * The version of this plugin.

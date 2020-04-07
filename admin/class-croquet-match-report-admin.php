@@ -41,7 +41,7 @@ class Croquet_Match_Report_Admin {
 		$opts['has_archive']							= FALSE;
 		$opts['hierarchical']							= FALSE;
 		$opts['map_meta_cap']							= TRUE;
-		$opts['menu_icon']								= 'dashicons-businessman';
+		$opts['menu_icon']								= 'dashicons-media-default';
 		$opts['menu_position']							= 25;
 		$opts['public']									= TRUE;
 		$opts['publicly_querable']						= TRUE;

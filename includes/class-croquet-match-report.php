@@ -99,9 +99,6 @@ class Croquet_Match_Report {
 	/**
 	 * Register all of the hooks related to the admin area functionality
 	 * of the plugin.
-	 *
-	 * @since    1.0.0
-	 * @access   private
 	 */
 	private function define_admin_hooks() {
 
@@ -113,6 +110,7 @@ class Croquet_Match_Report {
         // $this->loader->add_action( 'init', $plugin_admin, 'new_taxonomy_type' );
         // $this->loader->add_filter( 'plugin_action_links_' . NOW_HIRING_FILE, $plugin_admin, 'link_settings' );
         $this->loader->add_action( 'plugin_row_meta', $plugin_admin, 'link_row', 10, 2 );
+		write_log("adding action to add_menu");
         $this->loader->add_action( 'admin_menu', $plugin_admin, 'add_menu' );
         $this->loader->add_action( 'admin_init', $plugin_admin, 'register_settings' );
         $this->loader->add_action( 'admin_init', $plugin_admin, 'register_sections' );

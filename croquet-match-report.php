@@ -16,6 +16,16 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
+function write_log($log) {
+	if (is_array($log) || is_object($log)){
+		error_log(print_r($log,true));
+	} else {
+		error_log($log);
+	}
+}
+
+write_log ("Starting main .php");
+
 /**
  * Currently plugin version.
  * Start at version 1.0.0 and use SemVer - https://semver.org
@@ -30,6 +40,7 @@ define( 'CROQUET_MATCH_REPORT_VERSION', '1.0.0' );
 function activate_croquet_match_report() {
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-croquet-match-report-activator.php';
 	Croquet_Match_Report_Activator::activate();
+	write_log ("activated");
 }
 
 /**
@@ -63,6 +74,7 @@ function run_croquet_match_report() {
 
 	$plugin = new Croquet_Match_Report();
 	$plugin->run();
+	write_log("should be running");
 
 }
 run_croquet_match_report();

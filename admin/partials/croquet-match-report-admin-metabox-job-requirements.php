@@ -2,12 +2,6 @@
 
 /**
  * Provide the view for a metabox
- *
- * @link 		http://slushman.com
- * @since 		1.0.0
- *
- * @package 	Now_Hiring
- * @subpackage 	Now_Hiring/admin/partials
  */
 
 wp_nonce_field( $this->plugin_name, 'job_requirements_nonce' );

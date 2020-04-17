@@ -7,11 +7,6 @@
  *
  * Also maintains the unique identifier of this plugin as well as the current
  * version of the plugin.
- *
- * @since      1.0.0
- * @package    Plugin_Name
- * @subpackage Plugin_Name/includes
- * @author     Your Name <email@example.com>
  */
 class Croquet_Match_Report {
 
@@ -20,18 +15,16 @@ class Croquet_Match_Report {
 	protected $version;
 
 	public function __construct() {
-		if ( defined( 'PLUGIN_NAME_VERSION' ) ) {
-			$this->version = PLUGIN_NAME_VERSION;
-		} else {
-			$this->version = '1.0.0';
-		}
-		$this->plugin_name = 'plugin-name';
-
+		$this->plugin_name = 'croquet-match-report';
+		$this->version = '1.0.0';
 		$this->load_dependencies();
 		$this->set_locale();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
-
+		$this->define_template_hooks();
+        //$this->define_shared_hooks(); TODO commented out in the original - why?
+		$this->define_widget_hooks();
+		$this->define_metabox_hooks();
 	}
 
 	/**
@@ -69,14 +62,46 @@ class Croquet_Match_Report {
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-croquet-match-report-admin.php';
 
+        /**
+         * The class responsible for defining all actions relating to metaboxes.
+         */
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-croquet-match-report-admin-metaboxes.php';
+
 		/**
 		 * The class responsible for defining all actions that occur in the public-facing
 		 * side of the site.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-croquet-match-report-public.php';
 
-		$this->loader = new Croquet_Match_Report_Loader();
+		/**
+		 * The class responsible for defining all actions creating the templates.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-croquet-match-report-template-functions.php';
 
+		/**
+		 * The class responsible for all global functions.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/croquet-match-report-global-functions.php';
+
+		/**
+		 * The class responsible for defining all actions shared by the Dashboard and public-facing sides.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-croquet-match-report-shared.php';
+
+		/**
+		 * The class responsible for defining all actions that occur in the public-facing
+		 * side of the site.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-croquet-match-report-widget.php';
+
+		/**
+		 * The class responsible for sanitizing user input
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-croquet-match-report-sanitize.php';
+
+		$this->loader = new Croquet_Match_Report_Loader();
+		$this->sanitizer = new Croquet_Match_Report_Sanitize();
+        // TODO change to sanitizer
 	}
 
 	/**
@@ -85,13 +110,11 @@ class Croquet_Match_Report {
 	 * Uses the Plugin_Name_i18n class in order to set the domain and to register the hook
 	 * with WordPress.
 	 *
-	 * @since    1.0.0
-	 * @access   private
 	 */
 	private function set_locale() {
 
 		$plugin_i18n = new Croquet_Match_Report_i18n();
-
+		$plugin_i18n->set_domain( $this->get_plugin_name() );
 		$this->loader->add_action( 'plugins_loaded', $plugin_i18n, 'load_plugin_textdomain' );
 
 	}
@@ -101,46 +124,99 @@ class Croquet_Match_Report {
 	 * of the plugin.
 	 */
 	private function define_admin_hooks() {
-
 		$plugin_admin = new Croquet_Match_Report_Admin( $this->get_plugin_name(), $this->get_version() );
-
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 		$this->loader->add_action( 'init', $plugin_admin, 'new_cpt_report' );
-        // $this->loader->add_action( 'init', $plugin_admin, 'new_taxonomy_type' );
-        // $this->loader->add_filter( 'plugin_action_links_' . NOW_HIRING_FILE, $plugin_admin, 'link_settings' );
-        $this->loader->add_action( 'plugin_row_meta', $plugin_admin, 'link_row', 10, 2 );
-		write_log("adding action to add_menu");
+     // $this->loader->add_action( 'init', $plugin_admin, 'new_taxonomy_type' );
+     // $this->loader->add_filter( 'plugin_action_links_' . NOW_HIRING_FILE, $plugin_admin, 'link_settings' );
+     // $this->loader->add_action( 'plugin_row_meta', $plugin_admin, 'link_row', 10, 2 );
         $this->loader->add_action( 'admin_menu', $plugin_admin, 'add_menu' );
         $this->loader->add_action( 'admin_init', $plugin_admin, 'register_settings' );
         $this->loader->add_action( 'admin_init', $plugin_admin, 'register_sections' );
         $this->loader->add_action( 'admin_init', $plugin_admin, 'register_fields' );
-        // $this->loader->add_action( 'admin_notices', $plugin_admin, 'display_admin_notices' );
-        // $this->loader->add_action( 'admin_init', $plugin_admin, 'admin_notices_init' );
-
-
+      //  $this->loader->add_action( 'admin_notices', $plugin_admin, 'display_admin_notices' );
+      //  $this->loader->add_action( 'admin_init', $plugin_admin, 'admin_notices_init' );
 	}
 
 	/**
 	 * Register all of the hooks related to the public-facing functionality
 	 * of the plugin.
-	 *
-	 * @since    1.0.0
-	 * @access   private
 	 */
 	private function define_public_hooks() {
-
 		$plugin_public = new Croquet_Match_Report_Public( $this->get_plugin_name(), $this->get_version() );
-
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
+		$this->loader->add_filter( 'single_template', $plugin_public, 'single_cpt_template' );
+		$this->loader->add_action( 'init', $plugin_public, 'register_shortcodes' );
+    //  $this->loader->add_action( 'croquetmatchreport', $plugin_public, 'list_openings' );
+	//	$this->loader->add_action( 'croquetmatchreport_howtoapply', $plugin_public, 'how_to_apply' );
+	} //define_public_hooks()
 
-	}
+    /**
+	 * Register all of the hooks related to the templates.
+	 */
+	private function define_template_hooks() {
+		$plugin_templates = new Croquet_Match_Report_Template_Functions( $this->get_plugin_name(), $this->get_version() );
+
+		// Loop
+		$this->loader->add_action( 'croquet-match-report-before-loop', $plugin_templates, 'list_wrap_start', 10 );
+		$this->loader->add_action( 'croquet-match-report-before-loop-content', $plugin_templates, 'content_wrap_start', 10, 2 );
+		$this->loader->add_action( 'croquet-match-report-before-loop-content', $plugin_templates, 'content_link_start', 15, 2 );
+		$this->loader->add_action( 'croquet-match-report-loop-content', $plugin_templates, 'content_job_title', 10, 2 );
+		$this->loader->add_action( 'croquet-match-report-after-loop-content', $plugin_templates, 'content_link_end', 10, 2 );
+		$this->loader->add_action( 'croquet-match-report-after-loop-content', $plugin_templates, 'content_wrap_end', 90, 2 );
+		$this->loader->add_action( 'croquet-match-report-after-loop', $plugin_templates, 'list_wrap_end', 10 );
+
+		// Single
+		$this->loader->add_action( 'croquet-match-report-single-content', $plugin_templates, 'single_post_title', 10 );
+		$this->loader->add_action( 'croquet-match-report-single-content', $plugin_templates, 'single_post_content', 15 );
+		$this->loader->add_action( 'croquet-match-report-single-content', $plugin_templates, 'single_post_responsibilities', 20 );
+		$this->loader->add_action( 'croquet-match-report-single-content', $plugin_templates, 'single_post_location', 25 );
+		$this->loader->add_action( 'croquet-match-report-single-content', $plugin_templates, 'single_post_education', 30 );
+		$this->loader->add_action( 'croquet-match-report-single-content', $plugin_templates, 'single_post_skills', 35 );
+		$this->loader->add_action( 'croquet-match-report-single-content', $plugin_templates, 'single_post_experience', 40 );
+		$this->loader->add_action( 'croquet-match-report-single-content', $plugin_templates, 'single_post_info', 45 );
+		$this->loader->add_action( 'croquet-match-report-single-content', $plugin_templates, 'single_post_file', 50 );
+		$this->loader->add_action( 'croquet-match-report-after-single', $plugin_templates, 'single_post_how_to_apply', 10 );
+	} // define_template_hooks()
+    
+    /**
+	 * Register all of the hooks shared between public-facing and admin functionality
+	 * of the plugin.
+	 *
+	 * @since 		1.0.0
+	 * @access 		private
+	 */
+	private function define_shared_hooks() {
+		$plugin_shared = new Croquet_Match_Report_Shared( $this->get_plugin_name(), $this->get_version() );
+		$this->loader->add_action( 'widgets_init', $plugin_shared, 'widgets_init' );
+		$this->loader->add_action( 'save_post_job', $plugin_shared, 'flush_widget_cache' );
+		$this->loader->add_action( 'deleted_post', $plugin_shared, 'flush_widget_cache' );
+		$this->loader->add_action( 'switch_theme', $plugin_shared, 'flush_widget_cache' );
+	} // define_shared_hooks()
+
+
+	/**
+	 * Register all of the hooks related to metaboxes
+	 */
+	private function define_metabox_hooks() {
+        $cb = function () {
+            $cmr_types = array('ac_a_level', 'ac_b_level', 'ac_handicap'); // TODO and the rest
+			foreach ($cmr_types as $cmr_type) {
+	        	remove_post_type_support('cmr_' . $cmr_type, 'title');
+    	    	remove_post_type_support('cmr_' . $cmr_type, 'editor');
+			}
+        };
+        add_action('init', $cb ,99);
+		$plugin_metaboxes = new Croquet_Match_Report_Admin_Metaboxes( $this->get_plugin_name(), $this->get_version() );
+		$this->loader->add_action( 'add_meta_boxes', $plugin_metaboxes, 'add_metaboxes', 20 );
+		$this->loader->add_action( 'add_meta_boxes', $plugin_metaboxes, 'set_meta' ,30 );
+		$this->loader->add_action( 'save_post', $plugin_metaboxes, 'validate_meta', 10, 2 );
+	} // define_metabox_hooks()
 
 	/**
 	 * Run the loader to execute all of the hooks with WordPress.
-	 *
-	 * @since    1.0.0
 	 */
 	public function run() {
 		$this->loader->run();
@@ -149,9 +225,6 @@ class Croquet_Match_Report {
 	/**
 	 * The name of the plugin used to uniquely identify it within the context of
 	 * WordPress and to define internationalization functionality.
-	 *
-	 * @since     1.0.0
-	 * @return    string    The name of the plugin.
 	 */
 	public function get_plugin_name() {
 		return $this->plugin_name;
@@ -159,9 +232,6 @@ class Croquet_Match_Report {
 
 	/**
 	 * The reference to the class that orchestrates the hooks with the plugin.
-	 *
-	 * @since     1.0.0
-	 * @return    Plugin_Name_Loader    Orchestrates the hooks of the plugin.
 	 */
 	public function get_loader() {
 		return $this->loader;
@@ -169,12 +239,62 @@ class Croquet_Match_Report {
 
 	/**
 	 * Retrieve the version number of the plugin.
-	 *
-	 * @since     1.0.0
-	 * @return    string    The version number of the plugin.
 	 */
 	public function get_version() {
 		return $this->version;
 	}
 
+	// Option 2
+
+	/**
+	 * Register all of the hooks shared between public-facing and admin functionality
+	 * of the plugin.
+	 *
+	 * @since 		1.0.0
+	 * @access 		private
+	 */
+	private function define_widget_hooks() {
+		$this->loader->add_action( 'widgets_init', $this, 'widgets_init' );
+		$this->loader->add_action( 'save_post_job', $this, 'flush_widget_cache' );
+		$this->loader->add_action( 'deleted_post', $this, 'flush_widget_cache' );
+		$this->loader->add_action( 'switch_theme', $this, 'flush_widget_cache' );
+	}
+
+
+
+	/**
+	 * Flushes widget cache
+	 *
+	 * @since 		1.0.0
+	 * @access 		public
+	 * @param 		int 		$post_id 		The post ID
+	 * @return 		void
+	 */
+	public function flush_widget_cache( $post_id ) {
+
+		if ( wp_is_post_revision( $post_id ) ) { return; }
+
+		$post = get_post( $post_id );
+
+		/*if ( 'job' == $post->post_type ) {
+
+			wp_cache_delete( $this->plugin_name, 'widget' );
+
+		}*/
+
+	}
+
+
+
+	/**
+	 * Registers widgets with WordPress
+	 *
+	 * @since 		1.0.0
+	 * @access 		public
+	 */
+	public function widgets_init() {
+
+		register_widget( 'croquet_match_report_widget' );
+
+	} // widgets_init()
 }

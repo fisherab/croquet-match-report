@@ -7,12 +7,6 @@
  * field type should be the key for the field's attribute array.
  *
  * $fields['file-type']['all-the-field-attributes'] = 'Data for the attribute';
- *
- * @link       http://slushman.com
- * @since      1.0.0
- *
- * @package    Now_Hiring
- * @subpackage Now_Hiring/admin/partials
  */
 
 //echo '<pre>'; print_r( $repeater ); echo '</pre>';
@@ -35,9 +29,9 @@
 
 		?><li class="<?php echo esc_attr( $setatts['class'] ); ?>">
 			<div class="handle">
-				<span class="title-repeater"><?php echo esc_html( $setatts['label-header'], 'now-hiring' ); ?></span>
+				<span class="title-repeater"><?php echo esc_html( $setatts['label-header'], 'croquet-match-report' ); ?></span>
 				<button aria-expanded="true" class="btn-edit" type="button">
-					<span class="screen-reader-text"><?php echo esc_html( $setatts['label-edit'], 'now-hiring' ); ?></span>
+					<span class="screen-reader-text"><?php echo esc_html( $setatts['label-edit'], 'croquet-match-report' ); ?></span>
 					<span class="toggle-arrow"></span>
 				</button>
 			</div><!-- .handle -->
@@ -72,7 +66,7 @@
 					<a class="link-remove" href="#">
 						<span><?php
 
-							echo esc_html( apply_filters( $this->plugin_name . '-repeater-remove-link-label', $setatts['label-remove'] ), 'now-hiring' );
+							echo esc_html( apply_filters( $this->plugin_name . '-repeater-remove-link-label', $setatts['label-remove'] ), 'croquet-match-report' );
 
 						?></span>
 					</a>
@@ -86,7 +80,7 @@
 		<span id="status"></span>
 		<a class="button" href="#" id="add-repeater"><?php
 
-			echo esc_html( apply_filters( $this->plugin_name . '-repeater-more-link-label', $setatts['label-add'] ), 'now-hiring' );
+			echo esc_html( apply_filters( $this->plugin_name . '-repeater-more-link-label', $setatts['label-add'] ), 'croquet-match-report' );
 
 		?></a>
 	</div><!-- .repeater-more -->

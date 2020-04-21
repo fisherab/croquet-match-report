@@ -1,37 +1,21 @@
 <?php
 /**
- * The template for displaying all single job posts.
- *
- * @link https://developer.wordpress.org/themes/basics/template-hierarchy/#single-post
+ * The template for displaying a signle report contents
  */
 
+
+write_log("single-content-php entered");
+$pt = $post->post_type;
+$league = ['cmr_ac_a_level' => 'AC A Level League', 'cmr_ac_b_level' => 'AC B Level League', 'cmr_ac_handicap' => 'AC Handicap League'][$pt];
 $meta = get_post_custom( $post->ID );
+$tit = $league . ': ' . $meta['report-hometeam'][0] . ' vs ' . $meta['report-awayteam'][0] . ' at ' . $meta['report-venue'][0] . ' on ' . date_format(new DateTime($post->post_date),'d/M/Y'); 
+write_log($tit);
+?><div class="wrap-report"><?php
 
-/**
- * croquet-match-report-before-single hook
- */
-do_action( 'croquet-match-report-before-single', $meta );
+?><h1 classs="<?php echo esc_attr( 'report-title' ); ?>"><?php echo html_entity_decode( $tit ); ?></h1><?php
 
-?><div class="wrap-job"><?php
 
-	/**
-	 * croquet-match-report-before-single-content hook
-	 */
-	do_action( 'croquet-match-report-before-single-content', $meta );
+?></div><?php
 
-		/**
-		 * croquet-match-report-single-content hook
-		 */
-		do_action( 'croquet-match-report-single-content', $meta );
+write_log("single-content-php done"); //TODO to be continued
 
-	/**
-	 * croquet-match-report-after-single-content hook
-	 */
-	do_action( 'croquet-match-report-after-single-content', $meta );
-
-?></div><!-- .wrap-employee --><?php
-
-/**
- * croquet-match-report-after-single hook
- */
-do_action( 'croquet-match-report-after-single', $meta );

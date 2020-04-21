@@ -35,7 +35,7 @@ class Croquet_Match_Report_Admin {
 			$opts['capability_type']						= $cap_type;
 			$opts['description']							= '';
 			$opts['exclude_from_search']					= FALSE;
-			$opts['has_archive']							= FALSE;
+			$opts['has_archive']							= TRUE;
 			$opts['hierarchical']							= FALSE;
 			$opts['map_meta_cap']							= TRUE;
 			$opts['menu_icon']								= 'dashicons-media-default';
@@ -84,7 +84,7 @@ class Croquet_Match_Report_Admin {
 			$opts['rewrite']['ep_mask']						= EP_PERMALINK;
 			$opts['rewrite']['feeds']						= FALSE;
 			$opts['rewrite']['pages']						= TRUE;
-			$opts['rewrite']['slug']						= esc_html__( strtolower( $plural ), 'croquet-match-report' );
+			$opts['rewrite']['slug']						= esc_html__( str_replace(' ', '_',strtolower($league_name)), 'croquet-match-report' );
 			$opts['rewrite']['with_front']					= FALSE;
 
 			$opts = apply_filters( 'croquet-match-report-cpt-options', $opts );
@@ -96,133 +96,22 @@ class Croquet_Match_Report_Admin {
 
 
 	/**
-	 * Registers settings fields with WordPress
+	 * Registers settings fields with WordPress - currently none
 	 */
 	public function register_fields() {
-		/*
-		// add_settings_field( $id, $title, $callback, $menu_slug, $section, $args );
-
-		add_settings_field(
-		'message-no-openings',
-		apply_filters( $this->plugin_name . 'label-message-no-openings', esc_html__( 'No Openings Message', 'croquet-match-report' ) ),
-		array( $this, 'field_text' ),
-		$this->plugin_name,
-		$this->plugin_name . '-messages',
-		array(
-		'description' 	=> 'This message displays on the page if no job postings are found.',
-		'id' 			=> 'message-no-openings',
-		'value' 		=> 'Thank you for your interest! There are no job openings at this time.',
-		)
-		);
-
-		add_settings_field(
-		'how-to-apply',
-		apply_filters( $this->plugin_name . 'label-how-to-apply', esc_html__( 'How to Apply', 'croquet-match-report' ) ),
-		array( $this, 'field_editor' ),
-		$this->plugin_name,
-		$this->plugin_name . '-messages',
-		array(
-		'description' 	=> 'Instructions for applying (contact email, phone, fax, address, etc).',
-		'id' 			=> 'howtoapply'
-		)
-		);
-
-		add_settings_field(
-		'repeater-test',
-		apply_filters( $this->plugin_name . 'label-repeater-test', esc_html__( 'Repeater Test', 'croquet-match-report' ) ),
-		array( $this, 'field_repeater' ),
-		$this->plugin_name,
-		$this->plugin_name . '-messages',
-		array(
-		'description' 	=> 'Instructions for applying (contact email, phone, fax, address, etc).',
-		'fields' 		=> array(
-		array(
-		'text' => array(
-		'class' 		=> '',
-		'description' 	=> '',
-		'id' 			=> 'test1',
-		'label' 		=> '',
-		'name' 			=> $this->plugin_name . '-options[test1]',
-		'placeholder' 	=> 'Test 1',
-		'type' 			=> 'text',
-		'value' 		=> ''
-		),
-		),
-		array(
-		'text' => array(
-		'class' 		=> '',
-		'description' 	=> '',
-		'id' 			=> 'test2',
-		'label' 		=> '',
-		'name' 			=> $this->plugin_name . '-options[test2]',
-		'placeholder' 	=> 'Test 2',
-		'type' 			=> 'text',
-		'value' 		=> ''
-		),
-		),
-		array(
-		'text' => array(
-		'class' 		=> '',
-		'description' 	=> '',
-		'id' 			=> 'test3',
-		'label' 		=> '',
-		'name' 			=> $this->plugin_name . '-options[test3]',
-		'placeholder' 	=> 'Test 3',
-		'type' 			=> 'text',
-		'value' 		=> ''
-		),
-			),
-			),
-			'id' 			=> 'repeater-test',
-			'label-add' 	=> 'Add Test',
-			'label-edit' 	=> 'Edit Test',
-			'label-header' 	=> 'TEST',
-			'label-remove' 	=> 'Remove Test',
-			'title-field' 	=> 'test1'
-
-				)
-				);
-		*/
-	} // register_fields()
+	}
 
 	/**
-	 * Registers settings sections with WordPress
+	 * Registers settings sections with WordPress - currently none
 	 */
 	public function register_sections() {
-
-		/*
-
-		// add_settings_section( $id, $title, $callback, $menu_slug );
-
-		add_settings_section(
-		$this->plugin_name . '-messages',
-		apply_filters( $this->plugin_name . 'section-title-messages', esc_html__( 'Messages', 'croquet-match-report' ) ),
-		array( $this, 'section_messages' ),
-		$this->plugin_name
-		);
-		 */
-
-	} // register_sections()
+	}
 
 	/**
-	 * Registers plugin settings
-	 *
-	 * @since 		1.0.0
-	 * @return 		void
+	 * Registers plugin settings - currently none
 	 */
 	public function register_settings() {
-		/*
-
-		// register_setting( $option_group, $option_name, $sanitize_callback );
-
-		register_setting(
-		$this->plugin_name . '-options',
-		$this->plugin_name . '-options',
-		array( $this, 'validate_options' )
-		);
-		 */
-
-	} // register_settings()
+		}
 
 	private function sanitizer( $type, $data ) {
 
@@ -281,8 +170,7 @@ class Croquet_Match_Report_Admin {
 		 * class.
 		 */
 
-		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/plugin-name-admin.css', array(), $this->version, 'all' );
-
+		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/croquet-match-report-admin.css', array(), $this->version, 'all' );
 	}
 
 	/**

@@ -31,8 +31,12 @@ class Croquet_Match_Report_Public {
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
+        write_log("About to enquee css");
 
-		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/plugin-name-public.css', array(), $this->version, 'all' );
+		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/croquet-match-report-public.css', array(), $this->version, 'all' );
+
+		write_log( plugin_dir_url( __FILE__ ) . 'css/croquet-match-report-public.css');
+ 		write_log("enqueued");
 
 	}
 
@@ -55,7 +59,7 @@ class Croquet_Match_Report_Public {
 		 * class.
 		 */
 
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/plugin-name-public.js', array( 'jquery' ), $this->version, false );
+		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/croquet-match-report-public.js', array( 'jquery' ), $this->version, false );
 
 	}
 
@@ -68,15 +72,18 @@ class Croquet_Match_Report_Public {
 	} // register_shortcodes()
 
 	/**
-	 * Adds a default single view template for a job opening
+	 * Adds a single template for all report types
 	 */
 	public function single_cpt_template( $template ) {
 		global $post;
-		$return = $template;
-	    if ( $post->post_type == 'job' ) { //TODO will never happen
-			$return = now_hiring_get_template( 'single-job' );
-		}
-		return $return;
+		write_log("Called single_cpt_template");
+		write_log($post->post_type);
+	    if ( strpos($post->post_type,'cmr_') == 0 ) {
+            write_log("starts crm_");
+			return croquet_match_report_get_template( 'single-report' );
+		} else {
+			return $template;
+	    }
 	} // single_cpt_template()
 
 	/**
@@ -85,7 +92,4 @@ class Croquet_Match_Report_Public {
 	private function set_options() {
 		$this->options = get_option( $this->plugin_name . '-options' );
 	} // set_options()
-
-
-
 }

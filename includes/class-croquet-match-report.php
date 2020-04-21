@@ -100,23 +100,16 @@ class Croquet_Match_Report {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-croquet-match-report-sanitize.php';
 
 		$this->loader = new Croquet_Match_Report_Loader();
-		$this->sanitizer = new Croquet_Match_Report_Sanitize();
-        // TODO change to sanitizer
+		$this->sanitizer = new Croquet_Match_Report_Sanitize(); // TODO change to sanitizer
 	}
 
 	/**
 	 * Define the locale for this plugin for internationalization.
-	 *
-	 * Uses the Plugin_Name_i18n class in order to set the domain and to register the hook
-	 * with WordPress.
-	 *
 	 */
 	private function set_locale() {
-
 		$plugin_i18n = new Croquet_Match_Report_i18n();
 		$plugin_i18n->set_domain( $this->get_plugin_name() );
 		$this->loader->add_action( 'plugins_loaded', $plugin_i18n, 'load_plugin_textdomain' );
-
 	}
 
 	/**
@@ -156,7 +149,7 @@ class Croquet_Match_Report {
     /**
 	 * Register all of the hooks related to the templates.
 	 */
-	private function define_template_hooks() {
+	private function define_template_hooks() {  // TODO is this function needed
 		$plugin_templates = new Croquet_Match_Report_Template_Functions( $this->get_plugin_name(), $this->get_version() );
 
 		// Loop
@@ -168,25 +161,11 @@ class Croquet_Match_Report {
 		$this->loader->add_action( 'croquet-match-report-after-loop-content', $plugin_templates, 'content_wrap_end', 90, 2 );
 		$this->loader->add_action( 'croquet-match-report-after-loop', $plugin_templates, 'list_wrap_end', 10 );
 
-		// Single
-		$this->loader->add_action( 'croquet-match-report-single-content', $plugin_templates, 'single_post_title', 10 );
-		$this->loader->add_action( 'croquet-match-report-single-content', $plugin_templates, 'single_post_content', 15 );
-		$this->loader->add_action( 'croquet-match-report-single-content', $plugin_templates, 'single_post_responsibilities', 20 );
-		$this->loader->add_action( 'croquet-match-report-single-content', $plugin_templates, 'single_post_location', 25 );
-		$this->loader->add_action( 'croquet-match-report-single-content', $plugin_templates, 'single_post_education', 30 );
-		$this->loader->add_action( 'croquet-match-report-single-content', $plugin_templates, 'single_post_skills', 35 );
-		$this->loader->add_action( 'croquet-match-report-single-content', $plugin_templates, 'single_post_experience', 40 );
-		$this->loader->add_action( 'croquet-match-report-single-content', $plugin_templates, 'single_post_info', 45 );
-		$this->loader->add_action( 'croquet-match-report-single-content', $plugin_templates, 'single_post_file', 50 );
-		$this->loader->add_action( 'croquet-match-report-after-single', $plugin_templates, 'single_post_how_to_apply', 10 );
 	} // define_template_hooks()
     
     /**
-	 * Register all of the hooks shared between public-facing and admin functionality
-	 * of the plugin.
-	 *
-	 * @since 		1.0.0
-	 * @access 		private
+	 * Register all of the hooks shared between public-facing 
+     * and admin functionality of the plugin.
 	 */
 	private function define_shared_hooks() {
 		$plugin_shared = new Croquet_Match_Report_Shared( $this->get_plugin_name(), $this->get_version() );
@@ -201,13 +180,12 @@ class Croquet_Match_Report {
 	 * Register all of the hooks related to metaboxes
 	 */
 	private function define_metabox_hooks() {
-        $cb = function () {
-            $cmr_types = array('ac_a_level', 'ac_b_level', 'ac_handicap'); // TODO and the rest
-			foreach ($cmr_types as $cmr_type) {
-	        	remove_post_type_support('cmr_' . $cmr_type, 'title');
-    	    	remove_post_type_support('cmr_' . $cmr_type, 'editor');
+		$cb = function () {
+			foreach (['ac_a_level', 'ac_b_level', 'ac_handicap'] as $l) {
+        		remove_post_type_support('cmr_' . $l,'title'); // TODO and the rest
+        		remove_post_type_support('cmr_' . $l,'editor');
 			}
-        };
+		};
         add_action('init', $cb ,99);
 		$plugin_metaboxes = new Croquet_Match_Report_Admin_Metaboxes( $this->get_plugin_name(), $this->get_version() );
 		$this->loader->add_action( 'add_meta_boxes', $plugin_metaboxes, 'add_metaboxes', 20 );

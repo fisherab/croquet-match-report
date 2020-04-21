@@ -27,7 +27,7 @@ class Croquet_Match_Report_Admin_Metaboxes {
 	public function add_metaboxes() {
 
 		add_meta_box(
-			'croquet_match_report_report_home_team',  //Box id
+			'croquet_match_report_report_header',  //Box id
         	apply_filters( $this->plugin_name . '-metabox-title-requirements', esc_html__( 'Header', 'croquet-match-report' ) ), // Box title
 			array( $this, 'metabox' ), // Callback
             array("cmr_ac_a_level","cmr_ac_b_level","cmr_ac_handicap"), // post types to add the metabox
@@ -38,35 +38,32 @@ class Croquet_Match_Report_Admin_Metaboxes {
 			) // optional array of args to pass to callback
 		);
 
-		write_log("Added the first metabox");
-
-		/*add_meta_box(
-			'croquet_match_report_report_requirements', // Box id
-			apply_filters( $this->plugin_name . '-metabox-title-requirements', esc_html__( 'Job Requirements', 'croquet-match-report' ) ), // Box title
-			'job', // post type
+		add_meta_box(
+			'croquet_match_report_report_hometeam',  //Box id
+        	apply_filters( $this->plugin_name . '-metabox-title-requirements', esc_html__( 'Home Team (name, handicap and x if seen)', 'croquet-match-report' ) ), // Box title
 			array( $this, 'metabox' ), // Callback
-			'normal', // context - i.e. where it should go
-			'default', // priority
+            array("cmr_ac_a_level","cmr_ac_b_level","cmr_ac_handicap"), // post types to add the metabox
+        	'normal',    // context - i.e. where it should go
+			'default',   // priority
 			array(
-				'file' => 'job-requirements'
+				'file' => 'report-hometeam' 
 			) // optional array of args to pass to callback
 		);
 
 		add_meta_box(
-			'croquet_match_report_report_files',
-			apply_filters( $this->plugin_name . '-metabox-title-requirements', esc_html__( 'Related Files', 'croquet-match-report' ) ),
-			array( $this, 'metabox' ),
-			'job',
-			'side',
-			'default',
+			'croquet_match_report_report_awayteam',  //Box id
+        	apply_filters( $this->plugin_name . '-metabox-title-requirements', esc_html__( 'Away Team (name, handicap and x is seen', 'croquet-match-report' ) ), // Box title
+			array( $this, 'metabox' ), // Callback
+            array("cmr_ac_a_level","cmr_ac_b_level","cmr_ac_handicap"), // post types to add the metabox
+        	'normal',    // context - i.e. where it should go
+			'default',   // priority
 			array(
-				'file' => 'job-files',
-				'classes' => 'equal'
-			)
+				'file' => 'report-awayteam' 
+			) // optional array of args to pass to callback
 		);
-*/
 
-	} // add_metaboxes()
+		write_log("Added the metaboxes");
+	}
 
 	/**
 	 * Check each nonce. If any don't verify, $nonce_check is increased.
@@ -76,8 +73,8 @@ class Croquet_Match_Report_Admin_Metaboxes {
 		$nonces 		= array();
 		$nonce_check 	= 0;
 		$nonces[] 		= 'report_header';
-//		$nonces[] 		= 'job_additional_info'; TODO add the rest
-//		$nonces[] 		= 'job_files';
+		$nonces[] 		= 'report_hometeam'; // TODO add the rest
+		$nonces[] 		= 'report_awayteam';
 		foreach ( $nonces as $nonce ) {
 			if ( ! isset( $posted[$nonce] ) ) { $nonce_check++; }
 			if ( isset( $posted[$nonce] ) && ! wp_verify_nonce( $posted[$nonce], $this->plugin_name ) ) { $nonce_check++; }
@@ -95,11 +92,19 @@ class Croquet_Match_Report_Admin_Metaboxes {
 		$fields[] = array( 'report-season', 'text' );
  		$fields[] = array( 'report-hometeam', 'text' );
  		$fields[] = array( 'report-awayteam', 'text' );
+        $fields[] = array( 'report-home1', 'text' );
+        $fields[] = array( 'report-home2', 'text' );
+        $fields[] = array( 'report-home3', 'text' );
+        $fields[] = array( 'report-home4', 'text' );
+        $fields[] = array( 'report-away1', 'text' );
+        $fields[] = array( 'report-away2', 'text' );
+        $fields[] = array( 'report-away3', 'text' );
+        $fields[] = array( 'report-away4', 'text' );
+   
 		// $fields[] = array( 'job-responsibilities', 'textarea' );
 		// $fields[] = array( 'file-repeater', 'repeater', array( array( 'label-file', 'text' ), array( 'url-file', 'url' ) ) );
 		return $fields;
-
-	} // get_metabox_fields()
+	} 
 
 	/**
 	 * Calls a metabox file specified in the add_meta_box args.
@@ -208,7 +213,8 @@ class Croquet_Match_Report_Admin_Metaboxes {
 				write_log($_POST);
 				write_log($_POST[$name]);
 				$new_value = $this->sanitizer( $type, $_POST[$name] );
-			}
+			} 
+			write_log(["About to update", $post_id, $name, $new_value]);
 			update_post_meta( $post_id, $name, $new_value );
 		}
 	} // validate_meta()

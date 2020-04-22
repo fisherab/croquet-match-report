@@ -2,7 +2,6 @@
 
 /**
  * The metabox-specific functionality of the plugin.
- . TODO needs checking
  */
 class Croquet_Match_Report_Admin_Metaboxes {
 
@@ -88,7 +87,7 @@ class Croquet_Match_Report_Admin_Metaboxes {
 	 */
 	private function get_metabox_fields() {
 		$fields = array();
-		$fields[] = array( 'report-venue', 'text' );
+		$fields[] = array( 'report-venue', 'select' );
 		$fields[] = array( 'report-season', 'text' );
  		$fields[] = array( 'report-hometeam', 'text' );
  		$fields[] = array( 'report-awayteam', 'text' );

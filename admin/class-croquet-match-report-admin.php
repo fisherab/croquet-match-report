@@ -252,7 +252,7 @@ class Croquet_Match_Report_Admin {
 	} // field_editor()
 
 	/**
-	 * Creates a set of radios field
+	 * Creates a set of radio buttons
 	 *
 	 * @param   array       $args           The arguments for the field
 	 * @return  string                      The HTML field

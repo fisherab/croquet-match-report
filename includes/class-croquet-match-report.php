@@ -161,7 +161,10 @@ class Croquet_Match_Report {
 		$this->loader->add_action( 'croquet-match-report-after-loop-content', $plugin_templates, 'content_wrap_end', 90, 2 );
 		$this->loader->add_action( 'croquet-match-report-after-loop', $plugin_templates, 'list_wrap_end', 10 );
 
-	} // define_template_hooks()
+        // Single
+//        $this->loader->add_action( 'croquet-match-report-single-content', $plugin_templates, 'single_post_title', 10 ); // TODO can we get rid of this?
+        $this->loader->add_action( 'croquet-match-report-single-content', $plugin_templates, 'single_report_post_content', 15, 2);
+	}
     
     /**
 	 * Register all of the hooks shared between public-facing 

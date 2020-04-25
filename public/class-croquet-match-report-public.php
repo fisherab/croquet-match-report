@@ -78,13 +78,13 @@ class Croquet_Match_Report_Public {
 		global $post;
 		write_log("Called single_cpt_template");
 		write_log($post->post_type);
-	    if ( strpos($post->post_type,'cmr_') == 0 ) {
-            write_log("starts crm_");
+	    if ( "report" == $post->post_type ) {
+            write_log("Its a report!");
 			return croquet_match_report_get_template( 'single-report' );
 		} else {
 			return $template;
 	    }
-	} // single_cpt_template()
+	}
 
 	/**
 	 * Sets the class variable $options

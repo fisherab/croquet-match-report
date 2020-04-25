@@ -29,7 +29,7 @@ class Croquet_Match_Report_Admin_Metaboxes {
 			'croquet_match_report_report_header',  //Box id
         	apply_filters( $this->plugin_name . '-metabox-title-requirements', esc_html__( 'Header', 'croquet-match-report' ) ), // Box title
 			array( $this, 'metabox' ), // Callback
-            array("cmr_ac_a_level","cmr_ac_b_level","cmr_ac_handicap"), // post types to add the metabox
+            'report',    // post types to have the metabox 
         	'normal',    // context - i.e. where it should go
 			'default',   // priority
 			array(
@@ -41,7 +41,7 @@ class Croquet_Match_Report_Admin_Metaboxes {
 			'croquet_match_report_report_hometeam',  //Box id
         	apply_filters( $this->plugin_name . '-metabox-title-requirements', esc_html__( 'Home Team (name, handicap and x if seen)', 'croquet-match-report' ) ), // Box title
 			array( $this, 'metabox' ), // Callback
-            array("cmr_ac_a_level","cmr_ac_b_level","cmr_ac_handicap"), // post types to add the metabox
+            'report',    // post types to have the metabox
         	'normal',    // context - i.e. where it should go
 			'default',   // priority
 			array(
@@ -53,7 +53,7 @@ class Croquet_Match_Report_Admin_Metaboxes {
 			'croquet_match_report_report_awayteam',  //Box id
         	apply_filters( $this->plugin_name . '-metabox-title-requirements', esc_html__( 'Away Team (name, handicap and x is seen', 'croquet-match-report' ) ), // Box title
 			array( $this, 'metabox' ), // Callback
-            array("cmr_ac_a_level","cmr_ac_b_level","cmr_ac_handicap"), // post types to add the metabox
+            'report',    // post types to have the metabox
         	'normal',    // context - i.e. where it should go
 			'default',   // priority
 			array(
@@ -61,7 +61,7 @@ class Croquet_Match_Report_Admin_Metaboxes {
 			) // optional array of args to pass to callback
 		);
 
-		write_log("Added the metaboxes");
+		write_log("Added three metaboxes");
 	}
 
 	/**
@@ -88,7 +88,8 @@ class Croquet_Match_Report_Admin_Metaboxes {
 	private function get_metabox_fields() {
 		$fields = array();
 		$fields[] = array( 'report-venue', 'select' );
-		$fields[] = array( 'report-season', 'text' );
+		$fields[] = array( 'report-season', 'select' );
+		$fields[] = array( 'report-league', 'select' );
  		$fields[] = array( 'report-hometeam', 'text' );
  		$fields[] = array( 'report-awayteam', 'text' );
         $fields[] = array( 'report-home1', 'text' );
@@ -99,9 +100,6 @@ class Croquet_Match_Report_Admin_Metaboxes {
         $fields[] = array( 'report-away2', 'text' );
         $fields[] = array( 'report-away3', 'text' );
         $fields[] = array( 'report-away4', 'text' );
-   
-		// $fields[] = array( 'job-responsibilities', 'textarea' );
-		// $fields[] = array( 'file-repeater', 'repeater', array( array( 'label-file', 'text' ), array( 'url-file', 'url' ) ) );
 		return $fields;
 	} 
 
@@ -153,12 +151,10 @@ class Croquet_Match_Report_Admin_Metaboxes {
 		global $post;
 		write_log("Entered set_meta");
         if (empty($post)) return;
- 		if (strpos($post->post_type,"crm_") != 0 ) return;
-        write_log("Post type and id " . $post->post_type);
-        write_log($post->ID);
+ 		if ("report" != $post->post_type) return;
 		$this->meta = get_post_custom( $post->ID );
-        write_log($this->meta);
-	} // set_meta()
+        write_log(["Post type and id ", $post->post_type, " ", $post->ID, " ", $this->meta]);
+	}
 
 	/**
 	 * Saves metabox data
@@ -171,8 +167,8 @@ class Croquet_Match_Report_Admin_Metaboxes {
 	 *   	FOR loops through $clean, adding each value to $new_value as an array
 	 */
 	public function validate_meta( $post_id, $object ) {
-
-		write_log("Validate_meta for");
+		global $post;
+		write_log(["Validate_meta for", $post]);
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return $post_id;
 		if ( ! current_user_can( 'edit_post', $post_id ) ) return $post_id; 
 		if ( strpos($object->post_type,"cmr_") != 0 ) return $post_id;
@@ -216,6 +212,5 @@ class Croquet_Match_Report_Admin_Metaboxes {
 			write_log(["About to update", $post_id, $name, $new_value]);
 			update_post_meta( $post_id, $name, $new_value );
 		}
-	} // validate_meta()
-
-} // class
+	}
+}

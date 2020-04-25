@@ -22,7 +22,6 @@ class Croquet_Match_Report {
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
 		$this->define_template_hooks();
-        //$this->define_shared_hooks(); TODO commented out in the original - why?
 		$this->define_widget_hooks();
 		$this->define_metabox_hooks();
 	}
@@ -121,13 +120,7 @@ class Croquet_Match_Report {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 		$this->loader->add_action( 'init', $plugin_admin, 'new_cpt_report' );
-     // $this->loader->add_action( 'init', $plugin_admin, 'new_taxonomy_type' );
-     // $this->loader->add_filter( 'plugin_action_links_' . NOW_HIRING_FILE, $plugin_admin, 'link_settings' );
-     // $this->loader->add_action( 'plugin_row_meta', $plugin_admin, 'link_row', 10, 2 );
         $this->loader->add_action( 'admin_menu', $plugin_admin, 'add_menu' );
-        $this->loader->add_action( 'admin_init', $plugin_admin, 'register_settings' );
-        $this->loader->add_action( 'admin_init', $plugin_admin, 'register_sections' );
-        $this->loader->add_action( 'admin_init', $plugin_admin, 'register_fields' );
       //  $this->loader->add_action( 'admin_notices', $plugin_admin, 'display_admin_notices' );
       //  $this->loader->add_action( 'admin_init', $plugin_admin, 'admin_notices_init' );
 	}
@@ -183,13 +176,6 @@ class Croquet_Match_Report {
 	 * Register all of the hooks related to metaboxes
 	 */
 	private function define_metabox_hooks() {
-		$cb = function () {
-			foreach (['ac_a_level', 'ac_b_level', 'ac_handicap'] as $l) {
-        		remove_post_type_support('cmr_' . $l,'title'); // TODO and the rest
-        		remove_post_type_support('cmr_' . $l,'editor');
-			}
-		};
-        add_action('init', $cb ,99);
 		$plugin_metaboxes = new Croquet_Match_Report_Admin_Metaboxes( $this->get_plugin_name(), $this->get_version() );
 		$this->loader->add_action( 'add_meta_boxes', $plugin_metaboxes, 'add_metaboxes', 20 );
 		$this->loader->add_action( 'add_meta_boxes', $plugin_metaboxes, 'set_meta' ,30 );

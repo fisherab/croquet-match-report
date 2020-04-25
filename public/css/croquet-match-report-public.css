@@ -2,11 +2,8 @@
  * All of the CSS for your public-facing functionality should be
  * included in this file.
  */
-.report-title {
-	background-color: yellow;
-}
 h1 {
-    color:red;
-    font-size: 30px;
+    color:green;
+    font-size: 0.5em;
 }
 

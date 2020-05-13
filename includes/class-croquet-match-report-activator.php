@@ -1,31 +1,51 @@
 <?php
-
 /**
  * Fired during plugin activation
  */
 
 class Croquet_Match_Report_Activator {
 
-	public static function activate() {
- 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-croquet-match-report-admin.php';
+    public static function activate() {
+        global $wp_roles;
 
-                Croquet_Match_Report_Admin::new_cpt_report();
-                // Croquet_Match_Report_Admin::new_taxonomy_type();
+        if ( class_exists( 'WP_Roles' ) ){
+            if ( ! isset( $wp_roles ) ){
+                $wp_roles = new WP_Roles();
+            }
+        }
 
-                flush_rewrite_rules();
+        if ( is_object( $wp_roles ) ){
+            remove_role('cmr_report_manager');
+            add_role('cmr_report_manager', __( 'Report Manager', 'croquet-match-report'),
+                    array(
+                        'read'                          => true,
 
-                // $opts           = array();
-                // $options        = Croquet_Match_Report_Admin::get_options_list();
+                        'edit_sp_player'                => true,
+                        'read_sp_player'                => true,
+                        'delete_sp_player'              => true,
+                        'edit_sp_players'               => true,
+                        'publish_sp_players'            => true,
+                        'delete_sp_players'             => true,
+                        'delete_published_sp_players'   => true,
+                        'edit_published_sp_players'     => true,
 
-                //foreach ( $options as $option ) {
-                  //      $opts[ $option[0] ] = $option[2];
+                        'edit_sp_event'                 => true,
+                        'read_sp_event'                 => true,
+                        'delete_sp_event'               => true,
+                        'edit_sp_events'                => true,
+                        'publish_sp_events'             => true,
+                        'delete_sp_events'              => true,
+                        'delete_published_sp_events'    => true,
+                        'edit_published_sp_events'      => true,
 
-                //}
-
-                //update_option( 'croquet-match-report-options', $opts );
-
-                //Croquet_Match_Report_Admin::add_admin_notices();
-
-	}
-
+                        'edit_sp_team'                  => true,
+                        'read_sp_team'                  => true,
+                        'edit_sp_teams'                 => true,
+                        'delete_sp_teams'               => true,
+                        'delete_sp_team'                => true,
+                        'publish_sp_teams'              => true,
+                        'edit_published_sp_teams'       => true,
+                        ));
+        }
+    }
 }

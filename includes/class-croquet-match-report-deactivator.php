@@ -1,36 +1,16 @@
 <?php
-
 /**
  * Fired during plugin deactivation
- *
- * @link       http://example.com
- * @since      1.0.0
- *
- * @package    Plugin_Name
- * @subpackage Plugin_Name/includes
- */
-
-/**
- * Fired during plugin deactivation.
- *
- * This class defines all code necessary to run during the plugin's deactivation.
- *
- * @since      1.0.0
- * @package    Plugin_Name
- * @subpackage Plugin_Name/includes
- * @author     Your Name <email@example.com>
  */
 class Croquet_Match_Report_Deactivator {
 
-	/**
-	 * Short Description. (use period)
-	 *
-	 * Long Description.
-	 *
-	 * @since    1.0.0
-	 */
-	public static function deactivate() {
-
-	}
-
+    public static function deactivate() {
+        global $wp_roles;                                                                     
+        if (class_exists('WP_Roles')) {
+            if (! isset($wp_roles)){
+                $wp_roles = new WP_Roles();
+            }
+        }                                                
+        if (is_object($wp_roles)) remove_role('cmr_report_manager');
+    }
 }

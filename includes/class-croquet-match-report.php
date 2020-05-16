@@ -135,10 +135,11 @@ class Croquet_Match_Report {
      */
     private function define_metabox_hooks() {
         $plugin_metaboxes = new Croquet_Match_Report_Admin_Metaboxes( $this->get_plugin_name(), $this->get_version() );
-        $this->loader->add_action( 'add_meta_boxes', $plugin_metaboxes, 'add_metaboxes', 20 );
-        $this->loader->add_action( 'add_meta_boxes', $plugin_metaboxes, 'set_meta' ,30 );
-        $this->loader->add_action( 'save_post', $plugin_metaboxes, 'validate_meta', 10, 2 );
-    } // define_metabox_hooks()
+        $this->loader->add_action('add_meta_boxes', $plugin_metaboxes, 'add_metaboxes', 20 );
+        $this->loader->add_action('add_meta_boxes', $plugin_metaboxes, 'set_meta' ,30 );
+        $this->loader->add_action('save_post', $plugin_metaboxes, 'validate_meta', 10, 2 );
+        $this->loader->add_action('add_meta_boxes', $plugin_metaboxes, 'zap_metaboxes', 99);
+    }
 
     /**
      * Run the loader to execute all of the hooks with WordPress.
@@ -175,39 +176,34 @@ class Croquet_Match_Report {
      */
     public static function require_core() {
         $plugins = array(
-                array(
-                    'name'        => 'SportsPress',
-                    'slug'        => 'sportspress',
-                    'required'    => true,
-                    'version'     => '2.3',
-                    'is_callable' => array( 'SportsPress', 'instance' ),
-                    ),
-                );
+            array(
+                'name'        => 'SportsPress',
+                'slug'        => 'sportspress',
+                'required'    => true,
+                'version'     => '2.3',
+                'is_callable' => array( 'SportsPress', 'instance' ),
+            ),
+        );
 
         $config = array(
-                'default_path' => '',
-                'menu'         => 'tgmpa-install-plugins',
-                'has_notices'  => true,
-                'dismissable'  => true,
-                'is_automatic' => true,
-                'message'      => '',
-                'strings'      => array(
-                    'nag_type' => 'updated'
-                    )
-                );
+            'default_path' => '',
+            'menu'         => 'tgmpa-install-plugins',
+            'has_notices'  => true,
+            'dismissable'  => true,
+            'is_automatic' => true,
+            'message'      => '',
+            'strings'      => array(
+                'nag_type' => 'updated'
+            )
+        );
 
         tgmpa( $plugins, $config );
     }
 
 
-    // Option 2 TODO probably delete all below here ...
-
     /**
      * Register all of the hooks shared between public-facing and admin functionality
      * of the plugin.
-     *
-     * @since 		1.0.0
-     * @access 		private
      */
     private function define_widget_hooks() {
         $this->loader->add_action( 'widgets_init', $this, 'widgets_init' );
@@ -218,35 +214,17 @@ class Croquet_Match_Report {
 
     /**
      * Flushes widget cache
-     *
-     * @since 		1.0.0
-     * @access 		public
-     * @param 		int 		$post_id 		The post ID
-     * @return 		void
      */
     public function flush_widget_cache( $post_id ) {
-
         if ( wp_is_post_revision( $post_id ) ) { return; }
-
         $post = get_post( $post_id );
-
-        /*if ( 'job' == $post->post_type ) {
-
-          wp_cache_delete( $this->plugin_name, 'widget' );
-
-          }*/
-
+        if ( 'job' == $post->post_type ) wp_cache_delete( $this->plugin_name, 'widget' );
     }
 
     /**
      * Registers widgets with WordPress
-     *
-     * @since 		1.0.0
-     * @access 		public
      */
     public function widgets_init() {
-
         register_widget( 'croquet_match_report_widget' );
-
-    } // widgets_init()
+    }
 }

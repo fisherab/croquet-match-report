@@ -31,7 +31,7 @@ function activate_croquet_match_report() {
 function deactivate_croquet_match_report() {
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-croquet-match-report-deactivator.php';
 	Croquet_Match_Report_Deactivator::deactivate();
-    write_log('CMR deactivated');
+	write_log('CMR deactivated');
 }
 
 register_activation_hook( __FILE__, 'activate_croquet_match_report' );

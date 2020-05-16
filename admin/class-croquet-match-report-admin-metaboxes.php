@@ -27,10 +27,10 @@ class Croquet_Match_Report_Admin_Metaboxes {
 
 		add_meta_box(
 			'croquet_match_report_report_header',  //Box id
-        	apply_filters( $this->plugin_name . '-metabox-title-requirements', esc_html__( 'Header', 'croquet-match-report' ) ), // Box title
+			apply_filters( $this->plugin_name . '-metabox-title-requirements', esc_html__( 'Header', 'croquet-match-report' ) ), // Box title
 			array( $this, 'metabox' ), // Callback
-            'report',    // post types to have the metabox 
-        	'normal',    // context - i.e. where it should go
+			'report',    // post types to have the metabox 
+			'normal',    // context - i.e. where it should go
 			'default',   // priority
 			array(
 				'file' => 'report-header' 
@@ -39,10 +39,10 @@ class Croquet_Match_Report_Admin_Metaboxes {
 
 		add_meta_box(
 			'croquet_match_report_report_hometeam',  //Box id
-        	apply_filters( $this->plugin_name . '-metabox-title-requirements', esc_html__( 'Home Team (name, handicap and x if seen)', 'croquet-match-report' ) ), // Box title
+			apply_filters( $this->plugin_name . '-metabox-title-requirements', esc_html__( 'Home Team (name, handicap and x if seen)', 'croquet-match-report' ) ), // Box title
 			array( $this, 'metabox' ), // Callback
-            'report',    // post types to have the metabox
-        	'normal',    // context - i.e. where it should go
+			'report',    // post types to have the metabox
+			'normal',    // context - i.e. where it should go
 			'default',   // priority
 			array(
 				'file' => 'report-hometeam' 
@@ -51,10 +51,10 @@ class Croquet_Match_Report_Admin_Metaboxes {
 
 		add_meta_box(
 			'croquet_match_report_report_awayteam',  //Box id
-        	apply_filters( $this->plugin_name . '-metabox-title-requirements', esc_html__( 'Away Team (name, handicap and x is seen', 'croquet-match-report' ) ), // Box title
+			apply_filters( $this->plugin_name . '-metabox-title-requirements', esc_html__( 'Away Team (name, handicap and x is seen', 'croquet-match-report' ) ), // Box title
 			array( $this, 'metabox' ), // Callback
-            'report',    // post types to have the metabox
-        	'normal',    // context - i.e. where it should go
+			'report',    // post types to have the metabox
+			'normal',    // context - i.e. where it should go
 			'default',   // priority
 			array(
 				'file' => 'report-awayteam' 
@@ -62,6 +62,34 @@ class Croquet_Match_Report_Admin_Metaboxes {
 		);
 
 		write_log("Added three metaboxes");
+	}
+
+	public function zap_metaboxes() {
+		global $wp_meta_boxes;
+		remove_meta_box('postimagediv','sp_event','side');
+		remove_meta_box('sp_videodiv','sp_event','side');
+		remove_meta_box('sp_specsdiv','sp_event','side');
+		remove_meta_box('sp_modediv','sp_event','side');
+		remove_meta_box('sp_formatdiv','sp_event','side');
+		remove_meta_box('sp_shortcodediv','sp_event','side');
+		remove_meta_box('postexcerpt','sp_event','normal');
+		remove_meta_box('slugdiv','sp_event','normal');
+        remove_post_type_support('sp_event','editor');
+
+		remove_meta_box('postimagediv','sp_player','side');
+		remove_meta_box('sp_metricsdiv','sp_player','side');
+		remove_meta_box('pageparentdiv','sp_player','side');
+		remove_meta_box('sp_shortcodediv','sp_player','side');
+		remove_meta_box('postexcerpt','sp_player','normal');
+		remove_meta_box('slugdiv','sp_player','normal');
+        remove_post_type_support('sp_player','editor');
+
+    	remove_meta_box('sp_staffdiv','sp_team','normal');
+		remove_meta_box('sp_listsdiv','sp_team','normal');
+		remove_meta_box('pageparentdiv','sp_team','side');
+		remove_meta_box('postexcerpt','sp_team','normal');
+		remove_meta_box('slugdiv','sp_team','normal');
+        remove_post_type_support('sp_team','editor');
 	}
 
 	/**
@@ -90,16 +118,16 @@ class Croquet_Match_Report_Admin_Metaboxes {
 		$fields[] = array( 'report-venue', 'select' );
 		$fields[] = array( 'report-season', 'select' );
 		$fields[] = array( 'report-league', 'select' );
- 		$fields[] = array( 'report-hometeam', 'text' );
- 		$fields[] = array( 'report-awayteam', 'text' );
-        $fields[] = array( 'report-home1', 'text' );
-        $fields[] = array( 'report-home2', 'text' );
-        $fields[] = array( 'report-home3', 'text' );
-        $fields[] = array( 'report-home4', 'text' );
-        $fields[] = array( 'report-away1', 'text' );
-        $fields[] = array( 'report-away2', 'text' );
-        $fields[] = array( 'report-away3', 'text' );
-        $fields[] = array( 'report-away4', 'text' );
+		$fields[] = array( 'report-hometeam', 'text' );
+		$fields[] = array( 'report-awayteam', 'text' );
+		$fields[] = array( 'report-home1', 'text' );
+		$fields[] = array( 'report-home2', 'text' );
+		$fields[] = array( 'report-home3', 'text' );
+		$fields[] = array( 'report-home4', 'text' );
+		$fields[] = array( 'report-away1', 'text' );
+		$fields[] = array( 'report-away2', 'text' );
+		$fields[] = array( 'report-away3', 'text' );
+		$fields[] = array( 'report-away4', 'text' );
 		return $fields;
 	} 
 
@@ -150,10 +178,10 @@ class Croquet_Match_Report_Admin_Metaboxes {
 	public function set_meta() {
 		global $post;
 		write_log("Entered set_meta");
-        if (empty($post)) return;
- 		if ("report" != $post->post_type) return;
+		if (empty($post)) return;
+		if ("report" != $post->post_type) return;
 		$this->meta = get_post_custom( $post->ID );
-        write_log(["Post type and id ", $post->post_type, " ", $post->ID, " ", $this->meta]);
+		write_log(["Post type and id ", $post->post_type, " ", $post->ID, " ", $this->meta]);
 	}
 
 	/**
@@ -173,9 +201,9 @@ class Croquet_Match_Report_Admin_Metaboxes {
 		if ( ! current_user_can( 'edit_post', $post_id ) ) return $post_id; 
 		if ( strpos($object->post_type,"cmr_") != 0 ) return $post_id;
 
-        write_log("Check those nonces");
+		write_log("Check those nonces");
 		$nonce_check = $this->check_nonces( $_POST );
-        write_log($nonce_check);
+		write_log($nonce_check);
 		if ( 0 < $nonce_check ) { return $post_id; }
 
 		$metas = $this->get_metabox_fields();
@@ -202,7 +230,7 @@ class Croquet_Match_Report_Admin_Metaboxes {
 					} // foreach $clean
 				}
 			} else {
-                write_log("Not a repeater - type, name and post are:");
+				write_log("Not a repeater - type, name and post are:");
 				write_log($type);
 				write_log($name);
 				write_log($_POST);

@@ -4,6 +4,8 @@
  * Provide the view for a report hometeam metabox
  */
 
+// TODO is this code still neeeded
+
 wp_nonce_field( $this->plugin_name, 'report_header' );
 
 global $wpdb;
@@ -85,7 +87,7 @@ include( plugin_dir_path( __FILE__ ) . $this->plugin_name . '-admin-field-select
 
 // Hometeam
 
-write_log(["Home team" , $this->meta['report-season'][0]]); 
+write_log(["Home team - admin/partials/croquet-match-report-admin-metabox-report-header.php" , $this->meta['report-season'][0]]); 
 
 $atts 					= array();
 $atts['class'] 			= 'widefat';

@@ -25,13 +25,13 @@ function write_log($log) { // TODO delete when no longer needed or make it depen
 function activate_croquet_match_report() {
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-croquet-match-report-activator.php';
 	Croquet_Match_Report_Activator::activate();
-	write_log ("CMR activated");
+	write_log ("CMR activated - in croquet-match-report.php");
 }
 
 function deactivate_croquet_match_report() {
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-croquet-match-report-deactivator.php';
 	Croquet_Match_Report_Deactivator::deactivate();
-	write_log('CMR deactivated');
+	write_log('CMR deactivated - in croquet-match-report.php');
 }
 
 register_activation_hook( __FILE__, 'activate_croquet_match_report' );

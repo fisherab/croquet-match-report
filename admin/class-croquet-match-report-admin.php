@@ -17,9 +17,6 @@ class Croquet_Match_Report_Admin {
         $this->plugin_name = $plugin_name;
         $this->version = $version;
         add_action('sportspress_event_performance_meta_box_table_footer', array($this, 'printt'), 10, 8);
-        write_log('action added');
-        global $wp_filter;
-#        write_log($wp_filter);
     }
 
     /**
@@ -95,7 +92,6 @@ class Croquet_Match_Report_Admin {
         remove_post_type_support(strtolower( $cpt_name ), 'title');	
 
         $cb = function ( $defaults ) {
-            write_log(['Columns', $defaults]);
             $defaults = [];
             $defaults['cb'] = '<input type="checkbox" />';
             $defaults['report-league']  = 'League';
@@ -125,7 +121,6 @@ class Croquet_Match_Report_Admin {
     }
 
     public function set_post_name($post_id) { // This code unhooks itself and rehooks at the end to avoid infinite recursion
-        write_log(['Fiddle', $post_id]);
         if ( $parent_id = wp_is_post_revision( $post_id ) ) $post_id = $parent_id;
         remove_action('save_post_report', [$this, 'set_post_name']);
         wp_update_post(['ID' => $post_id, 'post_name' => $post_id]);
@@ -173,9 +168,10 @@ class Croquet_Match_Report_Admin {
                 );
     }
 
-
     public function printt ( $data = array(), $labels = array(), $team_id = 0, $positions = array(), $status = true, $sortable = true, $numbers = true, $section = -1 ) {
-        write_log([$data, $labels, $team_id, $positions, $status, $sortable, $numbes, $section]);
+        write_log('printt - admin/class-croquet-match-report-admin.php'); // TODO get rid of this function
+        write_log([$data, $labels, $team_id, $positions, $status, $sortable, $numbers, $section]);
+        write_log(['metadata - admin/class-croquet-match-report-admin.php', get_metadata('sp_team',$team_id)]);
     }
 
 

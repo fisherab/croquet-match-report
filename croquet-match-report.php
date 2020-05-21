@@ -15,23 +15,28 @@
 if ( ! defined( 'WPINC' ) ) die;
 
 function write_log($log) { // TODO delete when no longer needed or make it depend  on WP_DEBUG
-	if (is_array($log) || is_object($log)){
-		error_log(print_r($log,true));
-	} else {
-		error_log($log);
-	}
+    if (is_array($log) || is_object($log)){
+        error_log(print_r($log,true));
+    } else {
+        error_log($log);
+    }
 }
 
+function wporg_debug() {
+    write_log(current_action());
+}
+# add_action('all', 'wporg_debug');
+
 function activate_croquet_match_report() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-croquet-match-report-activator.php';
-	Croquet_Match_Report_Activator::activate();
-	write_log ("CMR activated - in croquet-match-report.php");
+    require_once plugin_dir_path( __FILE__ ) . 'includes/class-croquet-match-report-activator.php';
+    Croquet_Match_Report_Activator::activate();
+    write_log ("CMR activated - in croquet-match-report.php");
 }
 
 function deactivate_croquet_match_report() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-croquet-match-report-deactivator.php';
-	Croquet_Match_Report_Deactivator::deactivate();
-	write_log('CMR deactivated - in croquet-match-report.php');
+    require_once plugin_dir_path( __FILE__ ) . 'includes/class-croquet-match-report-deactivator.php';
+    Croquet_Match_Report_Deactivator::deactivate();
+    write_log('CMR deactivated - in croquet-match-report.php');
 }
 
 register_activation_hook( __FILE__, 'activate_croquet_match_report' );
@@ -47,7 +52,7 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-croquet-match-report.php';
  * not affect the page life cycle.
  */
 function run_croquet_match_report() {
-	$plugin = new Croquet_Match_Report();
-	$plugin->run();
+    $plugin = new Croquet_Match_Report();
+    $plugin->run();
 }
 run_croquet_match_report();

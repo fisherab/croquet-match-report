@@ -22,6 +22,7 @@ $atts['placeholder']    = '2020'; // TODO Make it for current year
 $atts['type']           = 'text';
 $atts['selections']     = $wpdb->get_col($q);
 $atts['value']          = '';
+$atts['aria']           = $atts['label'];
 
 if ( ! empty( $this->meta[$atts['id']][0] ) ) {
     $atts['value'] = $this->meta[$atts['id']][0];
@@ -47,6 +48,7 @@ $atts['placeholder']    = '';
 $atts['type']           = 'text';
 $atts['selections']     = $wpdb->get_col($q);
 $atts['value']          = '';
+$atts['aria']           = $atts['label'];
 
 if ( ! empty( $this->meta[$atts['id']][0] ) ) {
     $atts['value'] = $this->meta[$atts['id']][0];
@@ -72,6 +74,7 @@ $atts['placeholder'] 	= '';
 $atts['type'] 			= 'text';
 $atts['selections']     = $wpdb->get_col($q);
 $atts['value'] 			= '';
+$atts['aria']           = $atts['label'];
 
 if ( ! empty( $this->meta[$atts['id']][0] ) ) {
 	$atts['value'] = $this->meta[$atts['id']][0];
@@ -87,7 +90,7 @@ include( plugin_dir_path( __FILE__ ) . $this->plugin_name . '-admin-field-select
 
 // Hometeam
 
-write_log(["Home team - admin/partials/croquet-match-report-admin-metabox-report-header.php" , $this->meta['report-season'][0]]); 
+# write_log("Home team - admin/partials/croquet-match-report-admin-metabox-event-players.php");
 
 $atts 					= array();
 $atts['class'] 			= 'widefat';
@@ -98,6 +101,7 @@ $atts['name'] 			= 'report-hometeam';
 $atts['placeholder'] 	= '';
 $atts['type'] 			= 'text';
 $atts['value'] 			= '';
+$atts['aria']           = $atts['label'];
 
 if ( ! empty( $this->meta[$atts['id']][0] ) ) {
 	$atts['value'] = $this->meta[$atts['id']][0];
@@ -121,6 +125,7 @@ $atts['name'] 			= 'report-awayteam';
 $atts['placeholder'] 	= '';
 $atts['type'] 			= 'text';
 $atts['value'] 			= '';
+$atts['aria']           = $atts['label'];
 
 if ( ! empty( $this->meta[$atts['id']][0] ) ) {
 	$atts['value'] = $this->meta[$atts['id']][0];

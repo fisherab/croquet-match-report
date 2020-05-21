@@ -17,63 +17,98 @@ class Croquet_Match_Report_Admin_Metaboxes {
     public function __construct( $plugin_name, $version ) {
         $this->plugin_name = $plugin_name;
         $this->version = $version;
-        $this->set_meta();
+        #       $this->set_meta();
     }
+
+    public function pre_post_update_action($post_id, $data) {
+        $md = get_post_meta($post_id);
+        write_log(['ppua',$post_id, $data['post_title'],$md['sp_minutes']]);
+        write_log(["current",get_post($post_id)]);
+
+        $errors = array();
+
+        if(trim($_POST['post_title']) !== ''){
+            $errors[] = new WP_Error(42, 'Are you mad?');
+        }
+
+        if (!empty($errors)) {
+            add_user_meta(get_current_user_id(), 'admin_notices', $errors, true);
+            $url = admin_url( 'post.php?post=' . $post_id ) . '&action=edit';
+            wp_redirect( $url );
+            exit;     
+        }
+
+    }
+
+
+    /*
+     *  Display any errors
+     */
+    public function admin_notice_handler() {
+        $user_id = get_current_user_id();
+        $admin_notices = get_user_meta($user_id, 'admin_notices', true);
+        write_log($admin_notices);
+        if(!empty($admin_notices)){
+            $html = '';
+
+            if(is_wp_error($admin_notices[0])){
+
+                delete_user_meta($user_id, 'admin_notices');
+
+                foreach($admin_notices AS $notice){
+
+                    $msgs = $notice->get_error_messages();
+
+                    if(!empty($msgs)){
+                        $msg_type = $notice->get_error_data();
+                        if(!empty($notice_type)){
+                            $html .= '<div class="'.$msg_type.'">';
+                        } else {                    
+                            $html .= '<div class="error">';
+                            $html .= '<p><strong>Validation errors</strong></p>';
+                        }
+
+                        foreach($msgs as $msg){
+                            $html .= '<p>- '.$msg.'</p>';
+                        }                    
+                        $html .= '</div>';                   
+                    }
+                }
+            }
+
+            echo $html;
+        }
+    }         
+
 
     /**
      * Registers metaboxes with WordPress
      */
-    // TODO is this needed?
     public function add_metaboxes() {
 
         add_meta_box(
-            'croquet_match_report_report_header',  //Box id
-            apply_filters( $this->plugin_name . '-metabox-title-requirements', esc_html__( 'Header', 'croquet-match-report' ) ), // Box title
+            'croquet_match_report_players',  //Box id
+            apply_filters( $this->plugin_name . '-metabox-title-requirements', esc_html__( 'Players', 'croquet-match-report' ) ), // Box title
             array( $this, 'metabox' ), // Callback
-            'report',    // post types to have the metabox 
+            'sp_event',    // post types to have the metabox 
             'normal',    // context - i.e. where it should go
             'default',   // priority
             array(
-                'file' => 'report-header' 
-            ) // optional array of args to pass to callback
-        );
-
-        add_meta_box(
-            'croquet_match_report_report_hometeam',  //Box id
-            apply_filters( $this->plugin_name . '-metabox-title-requirements', esc_html__( 'Home Team (name, handicap and x if seen)', 'croquet-match-report' ) ), // Box title
-            array( $this, 'metabox' ), // Callback
-            'report',    // post types to have the metabox
-            'normal',    // context - i.e. where it should go
-            'default',   // priority
-            array(
-                'file' => 'report-hometeam' 
-            ) // optional array of args to pass to callback
-        );
-
-        add_meta_box(
-            'croquet_match_report_report_awayteam',  //Box id
-            apply_filters( $this->plugin_name . '-metabox-title-requirements', esc_html__( 'Away Team (name, handicap and x is seen', 'croquet-match-report' ) ), // Box title
-            array( $this, 'metabox' ), // Callback
-            'report',    // post types to have the metabox
-            'normal',    // context - i.e. where it should go
-            'default',   // priority
-            array(
-                'file' => 'report-awayteam' 
+                'file' => 'event-players' 
             ) // optional array of args to pass to callback
         );
 
     }
 
     public function zap_metaboxes() {
-        global $wp_meta_boxes;
-        remove_meta_box('postimagediv','sp_event','side');
-        remove_meta_box('sp_videodiv','sp_event','side');
-        remove_meta_box('sp_modediv','sp_event','side');
-        remove_meta_box('sp_formatdiv','sp_event','side');
-        remove_meta_box('sp_shortcodediv','sp_event','side');
-        remove_meta_box('postexcerpt','sp_event','normal');
-        remove_meta_box('slugdiv','sp_event','normal');
-        remove_post_type_support('sp_event','editor');
+        #        remove_meta_box('postimagediv','sp_event','side');
+        #        remove_meta_box('sp_videodiv','sp_event','side');
+        #        remove_meta_box('sp_modediv','sp_event','side');
+        #        remove_meta_box('sp_formatdiv','sp_event','side');
+        #        remove_meta_box('sp_shortcodediv','sp_event','side');
+        #        remove_meta_box('postexcerpt','sp_event','normal');
+        #        remove_meta_box('slugdiv','sp_event','normal');
+        #        remove_post_type_support('sp_event','editor');
 
         remove_meta_box('postimagediv','sp_player','side');
         remove_meta_box('pageparentdiv','sp_player','side');
@@ -95,6 +130,7 @@ class Croquet_Match_Report_Admin_Metaboxes {
      * If all nonces verify, returns 0.
      */
     private function check_nonces( $posted ) {
+        write_log ("Should not be here 1");
         $nonces 		= array();
         $nonce_check 	= 0;
         $nonces[] 		= 'report_header';
@@ -106,34 +142,14 @@ class Croquet_Match_Report_Admin_Metaboxes {
         }
         return $nonce_check;
 
-    } // check_nonces()
-
-    /**
-     * Returns an array of the all the metabox fields and their respective types
-     */
-    private function get_metabox_fields() {
-        $fields = array();
-        $fields[] = array( 'report-venue', 'select' );
-        $fields[] = array( 'report-season', 'select' );
-        $fields[] = array( 'report-league', 'select' );
-        $fields[] = array( 'report-hometeam', 'text' );
-        $fields[] = array( 'report-awayteam', 'text' );
-        $fields[] = array( 'report-home1', 'text' );
-        $fields[] = array( 'report-home2', 'text' );
-        $fields[] = array( 'report-home3', 'text' );
-        $fields[] = array( 'report-home4', 'text' );
-        $fields[] = array( 'report-away1', 'text' );
-        $fields[] = array( 'report-away2', 'text' );
-        $fields[] = array( 'report-away3', 'text' );
-        $fields[] = array( 'report-away4', 'text' );
-        return $fields;
-    } 
+    }
 
     /**
      * Calls a metabox file specified in the add_meta_box args.
      */
     public function metabox( $post, $params ) {
-        if ( ! is_admin() ) { return; }
+        write_log (["admin/class-croquet-match-report-admin-metaboxes", $post->ID, $post->post_type, $params]);
+        if ( ! is_admin() ) { return; } // TODO - replace by better line
         if ( ! empty( $params['args']['classes'] ) ) {
             $classes = 'repeater ' . $params['args']['classes'];
         }
@@ -141,6 +157,7 @@ class Croquet_Match_Report_Admin_Metaboxes {
     } // metabox()
 
     private function sanitizer( $type, $data ) {
+        write_log ("Should not be here 4");
         if ( empty( $type ) ) { return; }
         if ( empty( $data ) ) { return; }
         $return 	= '';
@@ -150,36 +167,6 @@ class Croquet_Match_Report_Admin_Metaboxes {
         $return = $sanitizer->clean();
         unset( $sanitizer );
         return $return;
-    } // sanitizer()
-
-    /**
-     * Saves button order when buttons are sorted.
-     */
-    public function save_files_order() {
-
-        check_ajax_referer( 'croquet-match-report-file-order-nonce', 'fileordernonce' );
-
-        $order 						= $this->meta['file-order'];
-        $new_order 					= implode( ',', $_POST['file-order'] );
-        $this->meta['file-order'] 	= $new_order;
-        $update 					= update_post_meta( 'file-order', $new_order );
-
-        esc_html_e( 'File order saved.', 'croquet-match-report' );
-
-        die();
-
-    } // save_files_order()
-
-    /**
-     * Sets the class variable $options
-     */
-    public function set_meta() {
-        global $post;
-        write_log("Entered set_meta");
-        if (empty($post)) return;
-        if ("report" != $post->post_type) return;
-        $this->meta = get_post_custom( $post->ID );
-        write_log(["Post type and id -admin/class-croquet-match-report-admin-metaboxes - set_meta", $post->post_type, " ", $post->ID, " ", $this->meta]);
     }
 
     /**
@@ -192,7 +179,8 @@ class Croquet_Match_Report_Admin_Metaboxes {
      *   	Gets max of $clean to use in FOR loop
      *   	FOR loops through $clean, adding each value to $new_value as an array
      */
-    public function validate_meta( $post_id, $object ) {
+    public function validate_meta_report($post_id, $object) {
+        write_log ("Should not be here 7");
         global $post;
         write_log(["Validate_meta for admin/class-croquet-match-report-admin-metaboxes", $post]);
         if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return $post_id;

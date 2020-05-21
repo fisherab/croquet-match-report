@@ -8,14 +8,10 @@
  */
 class Croquet_Match_Report_i18n {
 
-    public function __construct() {
-        write_log('constructing an i18n');
+    public function hook_text_translations() {
         add_filter( 'gettext', array( $this, 'gettext' ), 20, 3 );
     }
 
-    /**
-     * Text filter.
-     */
     public function gettext( $translated_text, $untranslated_text, $domain ) {
         if ( $domain == 'sportspress' ) {
             switch ( $untranslated_text ) {

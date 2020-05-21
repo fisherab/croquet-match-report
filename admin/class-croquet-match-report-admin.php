@@ -16,135 +16,7 @@ class Croquet_Match_Report_Admin {
     public function __construct( $plugin_name, $version ) {
         $this->plugin_name = $plugin_name;
         $this->version = $version;
-        add_action('sportspress_event_performance_meta_box_table_footer', array($this, 'printt'), 10, 8);
     }
-
-    /**
-     * Creates new custom post types
-     */
-    public static function new_cpt_report() {
-
-        $cap_type = 'post';
-        $single = 'Report';
-        $plural = 'Reports';
-        $cpt_name = "report";
-
-        $opts['can_export']								= TRUE;
-        $opts['capability_type']						= $cap_type;
-        $opts['description']							= '';
-        $opts['exclude_from_search']					= FALSE;
-        $opts['has_archive']							= TRUE;
-        $opts['hierarchical']							= FALSE;
-        $opts['map_meta_cap']							= TRUE;
-        $opts['menu_icon']								= 'dashicons-media-default';
-        $opts['menu_position']							= null;
-        $opts['public']									= TRUE;
-        $opts['publicly_querable']						= TRUE;
-        $opts['query_var']								= TRUE;
-        $opts['register_meta_box_cb']					= null;
-        $opts['rewrite']								= FALSE;
-        $opts['show_in_admin_bar']						= TRUE;
-        $opts['show_in_menu']							= TRUE;
-        $opts['show_in_nav_menu']						= TRUE;
-        $opts['show_ui']								= TRUE;
-        $opts['supports']								= array(); // Dont want title, featured imaged, editor etc
-        $opts['taxonomies']								= array();
-
-        $opts['capabilities']['delete_others_posts']	= "delete_others_{$cap_type}s";
-        $opts['capabilities']['delete_post']			= "delete_{$cap_type}";
-        $opts['capabilities']['delete_posts']			= "delete_{$cap_type}s";
-        $opts['capabilities']['delete_private_posts']	= "delete_private_{$cap_type}s";
-        $opts['capabilities']['delete_published_posts']	= "delete_published_{$cap_type}s";
-        $opts['capabilities']['edit_others_posts']		= "edit_others_{$cap_type}s";
-        $opts['capabilities']['edit_post']				= "edit_{$cap_type}";
-        $opts['capabilities']['edit_posts']				= "edit_{$cap_type}s";
-        $opts['capabilities']['edit_private_posts']		= "edit_private_{$cap_type}s";
-        $opts['capabilities']['edit_published_posts']	= "edit_published_{$cap_type}s";
-        $opts['capabilities']['publish_posts']			= "publish_{$cap_type}s";
-        $opts['capabilities']['read_post']				= "read_{$cap_type}";
-        $opts['capabilities']['read_private_posts']		= "read_private_{$cap_type}s";
-
-        $opts['labels']['add_new']						= esc_html__( "Add New {$single}", 'croquet-match-report' );
-        $opts['labels']['add_new_item']					= esc_html__( "Add New {$single}", 'croquet-match-report' );
-        $opts['labels']['all_items']					= esc_html__( $plural, 'croquet-match-report' );
-        $opts['labels']['edit_item']					= esc_html__( "Edit {$single}" , 'croquet-match-report' );
-        $opts['labels']['menu_name']					= esc_html__( $plural, 'croquet-match-report' );
-        $opts['labels']['name']							= esc_html__( $plural, 'croquet-match-report' );
-        $opts['labels']['name_admin_bar']				= esc_html__( $single, 'croquet-match-report' );
-        $opts['labels']['new_item']						= esc_html__( "New {$single}", 'croquet-match-report' );
-        $opts['labels']['not_found']					= esc_html__( "No {$plural} Found", 'croquet-match-report' );
-        $opts['labels']['not_found_in_trash']			= esc_html__( "No {$plural} Found in Trash", 'croquet-match-report' );
-        $opts['labels']['parent_item_colon']			= esc_html__( "Parent {$plural} :", 'croquet-match-report' );
-        $opts['labels']['search_items']					= esc_html__( "Search {$plural}", 'croquet-match-report' );
-        $opts['labels']['singular_name']				= esc_html__( $single, 'croquet-match-report' );
-        $opts['labels']['view_item']					= esc_html__( "View {$single}", 'croquet-match-report' );
-
-        $opts['rewrite']['ep_mask']						= EP_PERMALINK;
-        $opts['rewrite']['feeds']						= FALSE;
-        $opts['rewrite']['pages']						= TRUE;
-        $opts['rewrite']['slug']						= esc_html__( strtolower($plural), 'croquet-match-report' );
-        $opts['rewrite']['with_front']					= FALSE;
-
-        $opts = apply_filters( 'croquet-match-report-cpt-options', $opts ); //TODO do we need this?
-
-        register_post_type( strtolower( $cpt_name ), $opts );
-        remove_post_type_support(strtolower( $cpt_name ), 'editor');
-        remove_post_type_support(strtolower( $cpt_name ), 'title');	
-
-        $cb = function ( $defaults ) {
-            $defaults = [];
-            $defaults['cb'] = '<input type="checkbox" />';
-            $defaults['report-league']  = 'League';
-            $defaults['report-season']  = 'Season';
-            $defaults['report-venue']   = 'Venue';
-            $defaults['author'] = 'Added By';
-            $defaults['date'] = 'Date';
-            return $defaults;
-        };
-        add_filter('manage_report_posts_columns', $cb);
-
-        $cb = function ( $column_name, $post_id ) {
-            if ($column_name == 'report-league') {
-                echo get_post_meta( $post_id, 'report-league', true );
-            }
-            if ($column_name == 'report-season') {
-                echo get_post_meta( $post_id, 'report-season', true );
-            }
-
-            if ($column_name == 'report-venue') {
-                echo get_post_meta( $post_id, 'report-venue', true );
-            }
-        };
-        add_action( 'manage_report_posts_custom_column', $cb, 10, 2 );
-
-        add_action('save_post_report', [$this, 'set_post_name']);
-    }
-
-    public function set_post_name($post_id) { // This code unhooks itself and rehooks at the end to avoid infinite recursion
-        if ( $parent_id = wp_is_post_revision( $post_id ) ) $post_id = $parent_id;
-        remove_action('save_post_report', [$this, 'set_post_name']);
-        wp_update_post(['ID' => $post_id, 'post_name' => $post_id]);
-        add_action('save_post_report', [$this, 'set_post_name']);
-    }
-
-
-    private function sanitizer( $type, $data ) {
-
-        if ( empty( $type ) ) { return; }
-        if ( empty( $data ) ) { return; }
-
-        $return 	= '';
-        $sanitizer 	= new Croquet_Match_Report_Sanitize();
-        $sanitizer->set_data( $data );
-        $sanitizer->set_type( $type );
-
-        $return = $sanitizer->clean();
-
-        unset( $sanitizer );
-
-        return $return;
-
-    } // sanitizer()
 
     /**
      * Creates the help page
@@ -167,13 +39,6 @@ class Croquet_Match_Report_Admin {
                 25    
                 );
     }
-
-    public function printt ( $data = array(), $labels = array(), $team_id = 0, $positions = array(), $status = true, $sortable = true, $numbers = true, $section = -1 ) {
-        write_log('printt - admin/class-croquet-match-report-admin.php'); // TODO get rid of this function
-        write_log([$data, $labels, $team_id, $positions, $status, $sortable, $numbers, $section]);
-        write_log(['metadata - admin/class-croquet-match-report-admin.php', get_metadata('sp_team',$team_id)]);
-    }
-
 
     /**
      * Register the stylesheets for the admin area.

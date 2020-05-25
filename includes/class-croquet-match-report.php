@@ -27,7 +27,6 @@ class Croquet_Match_Report {
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-croquet-match-report-admin.php';
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-croquet-match-report-admin-metaboxes.php';
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/croquet-match-report-global-functions.php';
-        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-croquet-match-report-sanitize.php';
 
         /*
          * Ensure that Sportspress is present
@@ -35,8 +34,6 @@ class Croquet_Match_Report {
         require_once plugin_dir_path(dirname(__FILE__)) . '/includes/class-tgm-plugin-activation.php';
         $this->loader = new Croquet_Match_Report_Loader();
         $this->loader->add_action('tgmpa_register', $this, 'require_core');
-
-        $this->sanitizer = new Croquet_Match_Report_Sanitize(); // TODO change to sanitizer
     }
 
     /**
@@ -56,10 +53,6 @@ class Croquet_Match_Report {
         $plugin_admin = new Croquet_Match_Report_Admin( $this->get_plugin_name(), $this->get_version() );
         $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
         $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
-        //        $this->loader->add_action( 'init', $plugin_admin, 'new_cpt_report' );
-        //        $this->loader->add_action( 'admin_menu', $plugin_admin, 'add_menu' );
-        //  $this->loader->add_action( 'admin_notices', $plugin_admin, 'display_admin_notices' );
-        //  $this->loader->add_action( 'admin_init', $plugin_admin, 'admin_notices_init' );
     }
 
     /**
@@ -68,7 +61,6 @@ class Croquet_Match_Report {
     private function define_metabox_hooks() {
         $plugin_metaboxes = new Croquet_Match_Report_Admin_Metaboxes( $this->get_plugin_name(), $this->get_version() );
         $this->loader->add_action('add_meta_boxes', $plugin_metaboxes, 'add_metaboxes', 20 );
-        $this->loader->add_action('add_meta_boxes', $plugin_metaboxes, 'set_meta' ,30 );
         $this->loader->add_action('save_post_report', $plugin_metaboxes, 'validate_meta_report', 10, 2 );
         $this->loader->add_action('add_meta_boxes', $plugin_metaboxes, 'zap_metaboxes', 99);
         $this->loader->add_action('pre_post_update', $plugin_metaboxes, 'pre_post_update_action', 0, 2);

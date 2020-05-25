@@ -17,65 +17,177 @@ class Croquet_Match_Report_Admin_Metaboxes {
     public function __construct( $plugin_name, $version ) {
         $this->plugin_name = $plugin_name;
         $this->version = $version;
-        #       $this->set_meta();
     }
 
     public function pre_post_update_action($post_id, $data) {
-        $md = get_post_meta($post_id);
-        write_log(['ppua',$post_id, $data['post_title'],$md['sp_minutes']]);
-        write_log(["current",get_post($post_id)]);
+
+        # Allow update if sufficient privileges
+        if (!empty(array_intersect(wp_get_current_user()->roles, ['superadmin','administrator','sp_league_manager']))) return;
+
+        # Allow update if no results defined yet
+        if (!array_key_exists('sp_results',  $_POST)) return;
+
+        $approval_count = get_post_meta($post_id, 'approval_count', true);
+        $approval_count = "" === $approval_count ? 0 : $approval_count;
 
         $errors = array();
+        foreach (['homecaptain','awaycaptain'] as $captain) {
+            if (! array_key_exists($captain, $_POST['sp_specs'])) {
+                $errors[] = new WP_Error(1, 'As the results have been set the user names of the two captains must be provided');
+                break;
+            }
+            $name = trim($_POST['sp_specs'][$captain]);
+            if ("" === $name) {
+                $errors[] = new WP_Error(1, 'As the results have been set the user names of the two captains must be provided');
+                break;
+            }
 
-        if(trim($_POST['post_title']) !== ''){
-            $errors[] = new WP_Error(42, 'Are you mad?');
+            $user = get_user_by('login',$name);
+            if (!$user) {
+                $errors[] = new WP_Error(1, 'The '.$captain. ' does not have a recognised user name');
+                break;
+            }
+            if ($user->ID == wp_get_current_user()->ID) {
+                if (isset($you)) {
+                    $errors[] = new WP_Error(1, 'The home and away captains must be different');
+                    break;
+                }
+                $you = $captain;
+            } else {
+                $newowner = $user->ID;
+            }
+        }
+        if (!isset($you)) {
+            $errors[] = new WP_Error(1, 'You must be either the home or the away captain');
         }
 
+        /*
+         * Make sure the players are associated with the league and have a handicap
+         */
+        $code = $this->get_code($post_id);
+        $sp_player = $_POST['sp_player'];
+        $player_ids = array_merge($sp_player[0], $sp_player[1]);
+        $taxonomies = $_POST['tax_input'];
+        $league = $taxonomies['sp_league'];
+        if (2 != count($league)) {
+            $errors[] = new WP_Error(1, 'This match must be in exactly one league');
+        } else {    
+            $league_id = $league[1];
+            foreach ($player_ids as $player_id) {
+                if (0 != $player_id) {   
+                    $leagues = wp_get_object_terms($player_id, 'sp_league');
+                    $player = $this->get_player_info($player_id, $code);
+                    if ("" === $player['hcap']) {
+                        $errors[] = new WP_Error(1, $player['name'] . ' has no ' . $code . ' handicap'); 
+                    }
+                    $found = false;
+                    foreach ($leagues as $l) {
+                        if ($l->term_id == $league_id) {
+                            $found = true;
+                            break;
+                        }
+                    }
+                    if (!$found) {
+                        $errors[] = new WP_Error(1, $player['name'] . ' is not associated with this league');
+                    }
+                }
+            }
+        }
+
+        /*
+         * Make sure that exactly one season is present
+         */
+        $season = $taxonomies['sp_season'];
+        if (2 != count($season)) $errors[] = new WP_Error(1, 'This match must be in exactly one season');
+
+        /*
+         *  Now see if any errors set
+         */
         if (!empty($errors)) {
-            add_user_meta(get_current_user_id(), 'admin_notices', $errors, true);
+            foreach ($errors as $error) add_user_meta(get_current_user_id(), 'admin_notices', $error);
             $url = admin_url( 'post.php?post=' . $post_id ) . '&action=edit';
             wp_redirect( $url );
             exit;     
         }
 
+        /*
+         *  No more errors possible so update approval count and hook the owner change
+         */
+        if ($approval_count == 1) $newowner = 1; # TODO should be set as an option
+        update_post_meta($post_id, 'approval_count', $approval_count + 1);
+
+        $args = ['newowner' => $newowner, 'post_id' => $post_id, 'league_name' => get_term($league_id)->name];
+        add_action ('save_post_sp_event', function() use ($args) {$this->change_author($args);});
+
     }
 
+    public function change_author ($args) {
+        $title = get_post($args['post_id'])->post_title;
+        $user = get_user_by('ID', $args['newowner']);
+        $to = $user->user_email;
+        $league_manager = "dswarhurst@gmail.com"; #TODO should be configurable and a function of which code is being played
+        $given_name = strtok($user->user_nicename, ' \t');
+        $subject = "Please check and approve a match result";
+        $from = "webmaster@southerncroquet.org.uk";
+        $cc = $league_manager;
+        $headers = [];
+        $headers["From"] = $from;
+        $headers["Cc"] = $cc;
+        $message = "Dear " . $given_name. ",\n\n";
+        $message.= "A croquet match result is waiting for your approval.\n\n";
+        $message.= "Go to " . admin_url('edit.php?post_type=sp_event') . ", set the filters for the current season and for the league, '";
+        $message.= $args['league_name']. "', and click on the 'filter' button. Now find the match with the title '" . $title . "'.\n\n"; 
+        $message.= "Click on the title and you may get a message saying that someone is editing it - just request 'Take Over'. ";
+        $message.= "Then, check the result and confirm that all players had the indicated handicaps on the day of the event. Finally click 'Update'.\n\n";
+        $message.= "If something is wrong then please contact " . $league_manager . " and explain what the problem is.\n\n";
+        $message.= "After doing the update the ownership of the match is transferred away from you so you will no longer see it.\n\n";
+        $message.= "Steve"; #TODO should be configurable
+        mail($to, $subject, $message, $headers);
+        global $wpdb;
+        $wpdb->update($wpdb->posts,['post_author' => $args['newowner']], ['id' => $args['post_id']]);
+        wp_redirect(admin_url('edit.php?post_type=sp_event'));
+        exit;
+    }
+
+    public function get_player_info($player_id, $code) {
+        $player_name = get_post($player_id)->post_title;
+        $metrics = unserialize(get_post_meta($player_id)['sp_metrics'][0]);
+        return (['name' => $player_name, 'hcap' => $metrics[$code], 'username' => $metrics['username']]); 
+    }
+
+    public function get_code($post_id) {
+        $taxonomy = wp_get_object_terms($post_id, 'sp_league')[0];
+        while (0 != $taxonomy->parent) {
+            $taxonomy = get_term($taxonomy->parent, 'sp_league');
+        }
+        return $taxonomy->slug;
+    }
 
     /*
      *  Display any errors
      */
     public function admin_notice_handler() {
         $user_id = get_current_user_id();
-        $admin_notices = get_user_meta($user_id, 'admin_notices', true);
-        write_log($admin_notices);
+        $admin_notices = get_user_meta($user_id, 'admin_notices');
         if(!empty($admin_notices)){
             $html = '';
-
-            if(is_wp_error($admin_notices[0])){
-
-                delete_user_meta($user_id, 'admin_notices');
-
-                foreach($admin_notices AS $notice){
-
-                    $msgs = $notice->get_error_messages();
-
-                    if(!empty($msgs)){
-                        $msg_type = $notice->get_error_data();
-                        if(!empty($notice_type)){
-                            $html .= '<div class="'.$msg_type.'">';
-                        } else {                    
-                            $html .= '<div class="error">';
-                            $html .= '<p><strong>Validation errors</strong></p>';
-                        }
-
-                        foreach($msgs as $msg){
-                            $html .= '<p>- '.$msg.'</p>';
-                        }                    
-                        $html .= '</div>';                   
+            delete_user_meta($user_id, 'admin_notices');
+            foreach($admin_notices AS $notice){
+                $msgs = $notice->get_error_messages();
+                if(!empty($msgs)){
+                    $msg_type = $notice->get_error_data();
+                    if(!empty($notice_type)){
+                        $html .= '<div class="'.$msg_type.'">';
+                    } else {                    
+                        $html .= '<div class="error">';
+                        $html .= '<p><strong>Validation errors</strong></p>';
                     }
+                    foreach($msgs as $msg){
+                        $html .= '<p>- '.$msg.'</p>';
+                    }                    
+                    $html .= '</div>';                   
                 }
             }
-
             echo $html;
         }
     }         
@@ -99,131 +211,44 @@ class Croquet_Match_Report_Admin_Metaboxes {
         );
 
     }
-
+/*
+ * Remove all unwanted metaboxes
     public function zap_metaboxes() {
-        #        remove_meta_box('postimagediv','sp_event','side');
-        #        remove_meta_box('sp_videodiv','sp_event','side');
-        #        remove_meta_box('sp_modediv','sp_event','side');
-        #        remove_meta_box('sp_formatdiv','sp_event','side');
-        #        remove_meta_box('sp_shortcodediv','sp_event','side');
-        #        remove_meta_box('postexcerpt','sp_event','normal');
-        #        remove_meta_box('slugdiv','sp_event','normal');
-        #        remove_post_type_support('sp_event','editor');
-
-        remove_meta_box('postimagediv','sp_player','side');
-        remove_meta_box('pageparentdiv','sp_player','side');
-        remove_meta_box('sp_shortcodediv','sp_player','side');
-        remove_meta_box('postexcerpt','sp_player','normal');
-        remove_meta_box('slugdiv','sp_player','normal');
-        remove_post_type_support('sp_player','editor');
+        remove_meta_box('postimagediv','sp_event','side');
+        remove_meta_box('sp_videodiv','sp_event','side');
+        remove_meta_box('sp_modediv','sp_event','side');
+        # remove_meta_box('sp_formatdiv','sp_event','side');  # TODO if uncommented events will not be saved - probable bug in sportspress
+        remove_meta_box('sp_performancediv', 'sp_event', 'normal');
+        remove_meta_box('sp_shortcodediv','sp_event','side');  
+        remove_meta_box('postexcerpt','sp_event','normal');
+        remove_meta_box('slugdiv','sp_event','normal');
+        remove_post_type_support('sp_event','editor');
 
         remove_meta_box('sp_staffdiv','sp_team','normal');
         remove_meta_box('sp_listsdiv','sp_team','normal');
         remove_meta_box('pageparentdiv','sp_team','side');
         remove_meta_box('postexcerpt','sp_team','normal');
         remove_meta_box('slugdiv','sp_team','normal');
+        remove_meta_box('sp_tablesdiv', 'sp_team', 'normal');
         remove_post_type_support('sp_team','editor');
-    }
 
-    /**
-     * Check each nonce. If any don't verify, $nonce_check is increased.
-     * If all nonces verify, returns 0.
-     */
-    private function check_nonces( $posted ) {
-        write_log ("Should not be here 1");
-        $nonces 		= array();
-        $nonce_check 	= 0;
-        $nonces[] 		= 'report_header';
-        $nonces[] 		= 'report_hometeam'; // TODO add the rest
-        $nonces[] 		= 'report_awayteam';
-        foreach ( $nonces as $nonce ) {
-            if ( ! isset( $posted[$nonce] ) ) { $nonce_check++; }
-            if ( isset( $posted[$nonce] ) && ! wp_verify_nonce( $posted[$nonce], $this->plugin_name ) ) { $nonce_check++; }
-        }
-        return $nonce_check;
-
+        remove_meta_box('postimagediv','sp_player','side');
+        remove_meta_box('pageparentdiv','sp_player','side');
+        remove_meta_box('sp_shortcodediv','sp_player','side');
+        remove_meta_box('postexcerpt','sp_player','normal');
+        remove_meta_box('slugdiv','sp_player','normal');
+        remove_meta_box('sp_statisticsdiv', 'sp_player', 'normal');
+        remove_post_type_support('sp_player','editor');
     }
 
     /**
      * Calls a metabox file specified in the add_meta_box args.
      */
     public function metabox( $post, $params ) {
-        write_log (["admin/class-croquet-match-report-admin-metaboxes", $post->ID, $post->post_type, $params]);
-        if ( ! is_admin() ) { return; } // TODO - replace by better line
         if ( ! empty( $params['args']['classes'] ) ) {
             $classes = 'repeater ' . $params['args']['classes'];
         }
         include( plugin_dir_path( __FILE__ ) . 'partials/croquet-match-report-admin-metabox-' . $params['args']['file'] . '.php' );
-    } // metabox()
-
-    private function sanitizer( $type, $data ) {
-        write_log ("Should not be here 4");
-        if ( empty( $type ) ) { return; }
-        if ( empty( $data ) ) { return; }
-        $return 	= '';
-        $sanitizer 	= new Croquet_Match_Report_Sanitize();
-        $sanitizer->set_data( $data );
-        $sanitizer->set_type( $type );
-        $return = $sanitizer->clean();
-        unset( $sanitizer );
-        return $return;
     }
 
-    /**
-     * Saves metabox data
-     *
-     * Repeater section works like this:
-     *  	Loops through meta fields
-     *  		Loops through submitted data
-     *  		Sanitizes each field into $clean array
-     *   	Gets max of $clean to use in FOR loop
-     *   	FOR loops through $clean, adding each value to $new_value as an array
-     */
-    public function validate_meta_report($post_id, $object) {
-        write_log ("Should not be here 7");
-        global $post;
-        write_log(["Validate_meta for admin/class-croquet-match-report-admin-metaboxes", $post]);
-        if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return $post_id;
-        if ( ! current_user_can( 'edit_post', $post_id ) ) return $post_id; 
-        if ( strpos($object->post_type,"cmr_") != 0 ) return $post_id;
-
-        $nonce_check = $this->check_nonces( $_POST );
-        write_log(['Nonce check - admin/class-croquet-match-report-admin-metaboxes', $nonce_check]);
-        if ( 0 < $nonce_check ) { return $post_id; }
-
-        $metas = $this->get_metabox_fields();
-        write_log(['Metabox fields', $metas]);
-        foreach ( $metas as $meta ) {
-            $name = $meta[0];
-            $type = $meta[1];
-            if ( 'repeater' === $type && is_array( $meta[2] ) ) {
-                $clean = array();
-                foreach ( $meta[2] as $field ) {
-                    foreach ( $_POST[$field[0]] as $data ) {
-                        if ( empty( $data ) ) { continue; }
-                        $clean[$field[0]][] = $this->sanitizer( $field[1], $data );
-                    }
-                } 
-                $count 		= croquet_match_report_get_max( $clean );
-                $new_value 	= array();
-                for ( $i = 0; $i < $count; $i++ ) {
-
-                    foreach ( $clean as $field_name => $field ) {
-
-                        $new_value[$i][$field_name] = $field[$i];
-
-                    } // foreach $clean
-                }
-            } else {
-                write_log("Not a repeater - type, name and post are:");
-                write_log($type);
-                write_log($name);
-                write_log($_POST);
-                write_log($_POST[$name]);
-                $new_value = $this->sanitizer( $type, $_POST[$name] );
-            } 
-            write_log(["About to update", $post_id, $name, $new_value]);
-            update_post_meta( $post_id, $name, $new_value );
-        }
-    }
 }

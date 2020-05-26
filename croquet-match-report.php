@@ -2,13 +2,13 @@
 /**
  * Plugin Name: Croquet Match Report
  * Description:       Allow the user to input and validate league match results
- * Version:           2020.04.11
+ * Version:           2020.05.26
  * Requires at least: 5.2
  * Requires PHP:      7.2
  * Author             Steve Fisher
  * License:           GPL v2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       my-basics-plugin
+ * Text Domain:       croquet-match-report
  */
 
 // WPINC is defined by WordPress so this stops anybody invokine the file directly

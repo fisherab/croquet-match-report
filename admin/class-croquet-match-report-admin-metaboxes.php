@@ -209,10 +209,11 @@ class Croquet_Match_Report_Admin_Metaboxes {
                 'file' => 'event-players' 
             ) // optional array of args to pass to callback
         );
-
     }
-/*
- * Remove all unwanted metaboxes
+
+    /*
+     * Remove all unwanted metaboxes
+     */
     public function zap_metaboxes() {
         remove_meta_box('postimagediv','sp_event','side');
         remove_meta_box('sp_videodiv','sp_event','side');

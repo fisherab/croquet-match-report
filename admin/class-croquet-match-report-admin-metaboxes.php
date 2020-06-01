@@ -26,6 +26,17 @@ class Croquet_Match_Report_Admin_Metaboxes {
 
         # Allow update if no results defined yet
         if (!array_key_exists('sp_results',  $_POST)) return;
+        $results = $_POST['sp_results'];
+        $found = false;
+        foreach ($results as $result) {
+            foreach (['igs','games','hoops','tps'] as $rtype) {
+                if ('' != $result[$rtype]) {
+                    $found = true;
+                    break;
+                }
+            }
+        }
+        if (!$found) return;
 
         $approval_count = get_post_meta($post_id, 'approval_count', true);
         $approval_count = "" === $approval_count ? 0 : $approval_count;
@@ -64,7 +75,6 @@ class Croquet_Match_Report_Admin_Metaboxes {
         /*
          * Make sure the players are associated with the league and have a handicap
          */
-        $code = $this->get_code($post_id);
         $sp_player = $_POST['sp_player'];
         $player_ids = array_merge($sp_player[0], $sp_player[1]);
         $taxonomies = $_POST['tax_input'];
@@ -152,11 +162,18 @@ class Croquet_Match_Report_Admin_Metaboxes {
     public function get_player_info($player_id, $code) {
         $player_name = get_post($player_id)->post_title;
         $metrics = unserialize(get_post_meta($player_id)['sp_metrics'][0]);
-        return (['name' => $player_name, 'hcap' => $metrics[$code], 'username' => $metrics['username']]); 
+        $hcap = (!is_null($code)) ? $metrics[$code] : '';
+        return (['name' => $player_name, 'hcap' => $hcap, 'username' => $metrics['username']]); 
     }
 
-    public function get_code($post_id) {
-        $taxonomy = wp_get_object_terms($post_id, 'sp_league')[0];
+    /*
+     * return ac or gc determined by oldest ancestor of first league 
+     * a match should only be associated with one league
+     */
+    public function get_league_slug($post_id) {
+        $taxonomies = wp_get_object_terms($post_id, 'sp_league');
+        if (empty($taxonomies)) return null;
+        $taxonomy = $taxonomies[0];
         while (0 != $taxonomy->parent) {
             $taxonomy = get_term($taxonomy->parent, 'sp_league');
         }

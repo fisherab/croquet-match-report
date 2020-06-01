@@ -3,7 +3,7 @@
 /**
  * Display the set of players and their handicaps
  */
-$code = $this->get_code($post->ID);
+$code = $this->get_league_slug($post->ID);
 
 $team_ids = get_post_meta($post->ID)['sp_team'];
 $player_ids = get_post_meta($post->ID)['sp_player']; 

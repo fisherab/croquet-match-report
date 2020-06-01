@@ -45,6 +45,8 @@ class Croquet_Match_Report_Activator {
                         'delete_sp_team'                => true,
                         'publish_sp_teams'              => true,
                         'edit_published_sp_teams'       => true,
+
+                        'upload_files'                  => true,
                         ));
         }
     }

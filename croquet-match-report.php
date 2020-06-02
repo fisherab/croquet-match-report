@@ -21,19 +21,6 @@ function write_log($log) { // TODO delete when no longer needed or make it depen
     }
 }
 
-function display_sp ($msg) { # TODO this is probably already no longer needed
-    global $wp_filter;
-    write_log($msg);
-    if (array_key_exists('save_post_sp_event', $wp_filter)) {
-        foreach ($wp_filter['save_post_sp_event']->callbacks as $cb) {
-            write_log(count($cb));
-        }
-    } else {
-        write_log(0);
-    }
-    write_log(" -- eoo");
-}
-
 function activate_croquet_match_report() {
     require_once plugin_dir_path( __FILE__ ) . 'includes/class-croquet-match-report-activator.php';
     Croquet_Match_Report_Activator::activate();

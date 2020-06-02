@@ -73,7 +73,7 @@ class Croquet_Match_Report_Admin_Metaboxes {
         }
 
         /*
-         * Make sure the players are associated with the league and have a handicap
+         * Make sure the players have a handicap
          */
         $sp_player = $_POST['sp_player'];
         $player_ids = array_merge($sp_player[0], $sp_player[1]);
@@ -83,22 +83,16 @@ class Croquet_Match_Report_Admin_Metaboxes {
             $errors[] = new WP_Error(1, 'This match must be in exactly one league');
         } else {    
             $league_id = $league[1];
+            $taxonomy = get_term($league_id, 'sp_league');
+            while (0 != $taxonomy->parent) {
+                $taxonomy = get_term($taxonomy->parent, 'sp_league');
+            }
+            $code = $taxonomy->slug;
             foreach ($player_ids as $player_id) {
                 if (0 != $player_id) {   
-                    $leagues = wp_get_object_terms($player_id, 'sp_league');
                     $player = $this->get_player_info($player_id, $code);
                     if ("" === $player['hcap']) {
                         $errors[] = new WP_Error(1, $player['name'] . ' has no ' . $code . ' handicap'); 
-                    }
-                    $found = false;
-                    foreach ($leagues as $l) {
-                        if ($l->term_id == $league_id) {
-                            $found = true;
-                            break;
-                        }
-                    }
-                    if (!$found) {
-                        $errors[] = new WP_Error(1, $player['name'] . ' is not associated with this league');
                     }
                 }
             }
@@ -138,7 +132,7 @@ class Croquet_Match_Report_Admin_Metaboxes {
         $league_manager = "dswarhurst@gmail.com"; #TODO should be configurable and a function of which code is being played
         $given_name = strtok($user->user_nicename, ' \t');
         $subject = "Please check and approve a match result";
-        $from = "webmaster@southerncroquet.org.uk";
+        $from = "webmaster@southern-croquet.org.uk";
         $cc = $league_manager;
         $headers = [];
         $headers["From"] = $from;
@@ -155,8 +149,8 @@ class Croquet_Match_Report_Admin_Metaboxes {
         mail($to, $subject, $message, $headers);
         global $wpdb;
         $wpdb->update($wpdb->posts,['post_author' => $args['newowner']], ['id' => $args['post_id']]);
-        wp_redirect(admin_url('edit.php?post_type=sp_event'));
-        exit;
+#        wp_redirect(admin_url('edit.php?post_type=sp_event'));
+#        exit;
     }
 
     public function get_player_info($player_id, $code) {

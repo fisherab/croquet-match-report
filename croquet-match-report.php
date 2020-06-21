@@ -13,7 +13,8 @@
 // WPINC is defined by WordPress so this stops anybody invokine the file directly
 if ( ! defined( 'WPINC' ) ) die;
 
-function write_log($log) { // TODO delete when no longer needed or make it depend  on WP_DEBUG
+function write_log($log) {
+    if (! defined('WP_DEBUG')) return; 
     if (is_array($log) || is_object($log)){
         error_log(print_r($log,true));
     } else {

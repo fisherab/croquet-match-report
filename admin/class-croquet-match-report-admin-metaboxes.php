@@ -14,9 +14,12 @@ class Croquet_Match_Report_Admin_Metaboxes {
 
     private $version;
 
+    private $options;
+
     public function __construct( $plugin_name, $version ) {
         $this->plugin_name = $plugin_name;
         $this->version = $version;
+        $this -> options = get_option( $this->plugin_name . '-options' );
     }
 
     public function pre_post_update_action($post_id, $data) {
@@ -117,10 +120,10 @@ class Croquet_Match_Report_Admin_Metaboxes {
         /*
          *  No more errors possible so update approval count and hook the owner change
          */
-        if ($approval_count == 1) $newowner = 1; # TODO should be set as an option
+        if ($approval_count == 1) $newowner = get_user_by('email', $this->options['final-owner'])->ID;
         update_post_meta($post_id, 'approval_count', $approval_count + 1);
 
-        $args = ['newowner' => $newowner, 'post_id' => $post_id, 'league_name' => get_term($league_id)->name];
+        $args = ['newowner' => $newowner, 'post_id' => $post_id, 'league_name' => get_term($league_id)->name, 'code' => $code];
         add_action ('save_post_sp_event', function() use ($args) {$this->change_author($args);});
 
     }
@@ -129,11 +132,11 @@ class Croquet_Match_Report_Admin_Metaboxes {
         $title = get_post($args['post_id'])->post_title;
         $user = get_user_by('ID', $args['newowner']);
         $to = $user->user_email;
-        $league_manager = "dswarhurst@gmail.com"; #TODO should be configurable and a function of which code is being played
+        $league_managers = $this->options[$args['code'] . "-league-managers"];
         $given_name = strtok($user->user_nicename, ' \t');
         $subject = "Please check and approve a match result";
-        $from = "webmaster@southern-croquet.org.uk";
-        $cc = $league_manager;
+        $from = $this->options["webmaster-address"];
+        $cc = $league_managers;
         $headers = [];
         $headers["From"] = $from;
         $headers["Cc"] = $cc;
@@ -143,14 +146,12 @@ class Croquet_Match_Report_Admin_Metaboxes {
         $message.= $args['league_name']. "', and click on the 'filter' button. Now find the match with the title '" . $title . "'.\n\n"; 
         $message.= "Click on the title and you may get a message saying that someone is editing it - just request 'Take Over'. ";
         $message.= "Then, check the result and confirm that all players had the indicated handicaps on the day of the event. Finally click 'Update'.\n\n";
-        $message.= "If something is wrong then please contact " . $league_manager . " and explain what the problem is.\n\n";
+        $message.= "If something is wrong then please contact " . $league_managers . " and explain what the problem is.\n\n";
         $message.= "After doing the update the ownership of the match is transferred away from you so you will no longer see it.\n\n";
-        $message.= "Steve"; #TODO should be configurable
+        $message.= $this->options["webmaster-name"];
         mail($to, $subject, $message, $headers);
         global $wpdb;
         $wpdb->update($wpdb->posts,['post_author' => $args['newowner']], ['id' => $args['post_id']]);
-#        wp_redirect(admin_url('edit.php?post_type=sp_event'));
-#        exit;
     }
 
     public function get_player_info($player_id, $code) {

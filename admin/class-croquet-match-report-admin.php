@@ -10,12 +10,13 @@
 class Croquet_Match_Report_Admin {
 
     private $plugin_name;
-
     private $version;
+    private $options;
 
     public function __construct( $plugin_name, $version ) {
         $this->plugin_name = $plugin_name;
         $this->version = $version;
+        $this->set_options();
     }
 
     /**
@@ -23,21 +24,190 @@ class Croquet_Match_Report_Admin {
      */
     public function page_help() {
         include( plugin_dir_path( __FILE__ ) . 'partials/croquet-match-report-admin-page-help.php' );
-    } // page_help()
+    }
 
     /**
-     * Add top level admin menus for help
+     * Add menus
      */
     public function add_menu() {
+        /**
+         * Add help menu
+         */
         add_menu_page( // For help
-                apply_filters( $this->plugin_name . '-settings-page-title', esc_html__( 'Croquet Match Report Help', 'croquet-match-report' ) ),
-                apply_filters( $this->plugin_name . '-settings-menu-title', esc_html__( 'Croquet Match Report Help', 'croquet-match-report' ) ),
-                'manage_options',
-                $this->plugin_name . '-help',
-                array( $this, 'page_help' ),
-                'dashicons-editor-help',
-                25    
-                );
+            apply_filters( $this->plugin_name . '-settings-page-title', esc_html__( 'Croquet Match Report Help', 'croquet-match-report' ) ),
+            apply_filters( $this->plugin_name . '-settings-menu-title', esc_html__( 'Croquet Match Report Help', 'croquet-match-report' ) ),
+            'manage_options',
+            $this->plugin_name . '-help',
+            array( $this, 'page_help' ),
+            'dashicons-editor-help',
+            25    
+        );
+
+        /**
+         * Add option submenu
+         */
+        add_submenu_page(
+            'options-general.php',
+            apply_filters( $this->plugin_name . '-settings-page-title', esc_html__( 'Croquet Match Report Settings', 'croquet-match-report' ) ),
+            apply_filters( $this->plugin_name . '-settings-menu-title', esc_html__( 'Croquet Match Report', 'croquet-match-report' ) ),
+            'manage_options',
+            $this->plugin_name . '-settings',
+            array( $this, 'page_options' )
+        );
+    }
+
+    /**
+     * Creates the options page
+     */
+    public function page_options() {
+        include( plugin_dir_path( __FILE__ ) . 'partials/croquet-match-report-admin-page-settings.php' );
+    }
+
+    /**
+     * Sets the class variable $options
+     */
+    private function set_options() {
+        $this->options = get_option( $this->plugin_name . '-options' );
+    }
+
+    /**
+     * Registers settings - only one in this case
+     */
+    public function register_settings() {
+        register_setting(
+            $this->plugin_name . '-options',
+            $this->plugin_name . '-options',
+            ['sanitize_callback' => [$this, 'validate_options']]
+        );
+    }
+
+    public function validate_options($input) {
+
+        $key = "webmaster-address";
+        $email = $input[$key];
+        if (! Croquet_Match_Report_Validator::check("email",$email)) {
+            add_settings_error($this->plugin_name . '-options', $this->plugin_name . '-options' . '1', "Webmaster's address is not a valid email address: " . sanitize_text_field($email), 'error'); 
+            $input[$key] = $this->options[$key];
+        }
+
+        $key = "webmaster-name";
+        $name = $input[$key];
+        if (sanitize_text_field($name) !== $name) {
+            add_settings_error($this->plugin_name . '-options', $this->plugin_name . '-options' . '1', "Webmaster's name has illegal content: " . sanitize_text_field($name), 'error'); 
+            $input[$key] = $this->options[$key];
+        }
+
+        foreach ([["ac-league-managers","AC League Managers"],["gc-league-managers","GC League Managers"]] as $row) {
+            $key = $row[0];
+            $value = explode(",",$input[$key]);
+            $fail = false;
+            foreach ($value as $email) {
+                if (! get_user_by("email", $email)) {
+                    add_settings_error($this->plugin_name . '-options', $this->plugin_name . '-options' . '1', "No user registered as " . sanitize_text_field($email), 'error'); 
+                    $fail = true;
+                }
+            }
+            if ($fail) {
+                $input[$key] = $this->options[$key];
+            }
+        }
+
+        $key = "final-owner";
+        $email = $input[$key];
+        write_log($email);
+        if (! get_user_by("email", $email)) {
+            add_settings_error($this->plugin_name . '-options', $this->plugin_name . '-options' . '1', "Final owner's email address not registered: " . sanitize_text_field($email), 'error'); 
+            $input[$key] = $this->options[$key];
+        }
+
+
+
+        return $input;
+    }
+
+    /**
+     * Registers sections within settings - currently just one
+     */
+    public function register_sections() {
+        add_settings_section(
+            $this->plugin_name . '-messages',
+            apply_filters( $this->plugin_name . 'section-title-messages', esc_html__( 'Messages', 'croquet-match-report' ) ),
+            array( $this, 'section_messages' ),
+            $this->plugin_name
+        );
+    }
+
+    /**
+     * Creates a settings section
+     */
+    public function section_messages( $params ) {
+        include( plugin_dir_path( __FILE__ ) . 'partials/croquet-match-report-admin-section-messages.php' );
+    }
+
+    /**
+     * Register fields in sections
+     */
+    public function register_fields() {
+        add_settings_field(
+            'webmaster-address',
+            esc_html__( 'Webmaster Address', 'croquet-match-report' ),
+            array( $this, 'field_text'),
+            $this->plugin_name,
+            $this->plugin_name . '-messages',
+            array(
+                'description' 	=> 'The email address of the webmaster - with a domain the same as that of the server',
+                'id' => 'webmaster-address',
+            )
+        );
+
+        add_settings_field(
+            'webmaster-name',
+            esc_html__( 'Webmaster Name', 'croquet-match-report' ),
+            array( $this, 'field_text'),
+            $this->plugin_name,
+            $this->plugin_name . '-messages',
+            array(
+                'description' 	=> 'Used as the signature on emails sent by the webmaster',
+                'id' => 'webmaster-name',
+            )
+        );
+
+        add_settings_field(
+            'ac-league-managers',
+            esc_html__('AC League Managers', 'croquet-match-report'),
+            array( $this, 'field_text'),
+            $this->plugin_name,
+            $this->plugin_name . '-messages',
+            array(
+                'description' 	=> 'A comma separated list of email addresses',
+                'id' => 'ac-league-managers',
+            )
+        );
+
+        add_settings_field(
+            'gc-league-managers',
+            esc_html__('GC League Managers', 'croquet-match-report'),
+            array( $this, 'field_text'),
+            $this->plugin_name,
+            $this->plugin_name . '-messages',
+            array(
+                'description' 	=> 'A comma separated list of email addresses',
+                'id' => 'gc-league-managers',
+            )
+        );  
+  
+        add_settings_field(
+            'final-owner',
+            esc_html__('Final owner', 'croquet-match-report'),
+            array( $this, 'field_text'),
+            $this->plugin_name,
+            $this->plugin_name . '-messages',
+            array(
+                'description' 	=> 'Email address of user to own completed reports',
+                'id' => 'final-owner',
+            )
+        );
+ 
     }
 
     /**

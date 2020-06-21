@@ -27,6 +27,7 @@ class Croquet_Match_Report {
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-croquet-match-report-admin.php';
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-croquet-match-report-admin-metaboxes.php';
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/croquet-match-report-global-functions.php';
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-croquet-match-report-validator.php';
 
         /*
          * Ensure that Sportspress is present
@@ -51,8 +52,12 @@ class Croquet_Match_Report {
      */
     private function define_admin_hooks() {
         $plugin_admin = new Croquet_Match_Report_Admin( $this->get_plugin_name(), $this->get_version() );
-        $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
-        $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+        $this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
+        $this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+        $this->loader->add_action('admin_menu', $plugin_admin, 'add_menu' );
+        $this->loader->add_action('admin_init', $plugin_admin, 'register_settings');
+        $this->loader->add_action('admin_init', $plugin_admin, 'register_sections');
+        $this->loader->add_action('admin_init', $plugin_admin, 'register_fields');
     }
 
     /**

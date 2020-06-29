@@ -11,7 +11,6 @@ if ( ! empty( $atts['label'] ) ) {
 }
 
 ?><select
-	aria-label="<?php esc_attr( _e( $atts['aria'], 'croquet-match-report' ) ); ?>"
 	class="<?php echo esc_attr( $atts['class'] ); ?>"
 	id="<?php echo esc_attr( $atts['id'] ); ?>"
 	name="<?php echo esc_attr( $atts['name'] ); ?>"><?php

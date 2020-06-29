@@ -24,6 +24,20 @@ class Croquet_Match_Report_Admin_Metaboxes {
 
     public function pre_post_update_action($post_id, $data) {
 
+        write_log(get_post_meta($post_id)['_wporg_meta_key']);
+#        write_log($_POST);
+
+        if (array_key_exists('croquet-match-report-options', $_POST)) {
+            write_log($_POST['croquet-match-report-options']);
+            quet-match-report-options
+            update_post_meta(
+                $post_id,
+                '_wporg_meta_key',
+                $_POST['croquet-match-report-options']
+            );
+        }
+
+
         # Allow update if sufficient privileges
         if (!empty(array_intersect(wp_get_current_user()->roles, ['superadmin','administrator','sp_league_manager']))) return;
 
@@ -216,11 +230,24 @@ class Croquet_Match_Report_Admin_Metaboxes {
             array( $this, 'metabox' ), // Callback
             'sp_event',    // post types to have the metabox 
             'normal',    // context - i.e. where it should go
-            'default',   // priority
+            'high',   // priority
             array(
                 'file' => 'event-players' 
             ) // optional array of args to pass to callback
         );
+
+        add_meta_box(
+            'croquet_match_report_games',  //Box id
+            apply_filters( $this->plugin_name . '-metabox-title-requirements', esc_html__( 'Games', 'croquet-match-report' ) ), // Box title
+            array( $this, 'metabox' ), // Callback
+            'sp_event',    // post types to have the metabox 
+            'normal',    // context - i.e. where it should go
+            'high',   // priority
+            array(
+                'file' => 'event-games' 
+            ) // optional array of args to pass to callback
+        );
+
     }
 
     /*

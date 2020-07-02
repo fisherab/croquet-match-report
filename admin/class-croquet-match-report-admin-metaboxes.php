@@ -22,24 +22,28 @@ class Croquet_Match_Report_Admin_Metaboxes {
         $this -> options = get_option( $this->plugin_name . '-options' );
     }
 
+    public function get_max_game_count() {
+        return 5; #TODO remove literal
+    }
+
+    public function make_updates($post_id) {
+        $value = array_map(null, 
+            $_POST[$this->plugin_name . "-event-games-home-player"], 
+            $_POST[$this->plugin_name . "-event-games-home-score"],
+            $_POST[$this->plugin_name . "-event-games-away-player"], 
+            $_POST[$this->plugin_name . "-event-games-away-score"]
+        );
+        update_post_meta($post_id, 'event_games', $value);
+    }
+
+
     public function pre_post_update_action($post_id, $data) {
 
-        write_log(get_post_meta($post_id)['_wporg_meta_key']);
-#        write_log($_POST);
-
-        if (array_key_exists('croquet-match-report-options', $_POST)) {
-            write_log($_POST['croquet-match-report-options']);
-            quet-match-report-options
-            update_post_meta(
-                $post_id,
-                '_wporg_meta_key',
-                $_POST['croquet-match-report-options']
-            );
-        }
-
-
         # Allow update if sufficient privileges
-        if (!empty(array_intersect(wp_get_current_user()->roles, ['superadmin','administrator','sp_league_manager']))) return;
+        if (!empty(array_intersect(wp_get_current_user()->roles, ['superadmin','administrator','sp_league_manager']))) {
+            $this->make_updates($post_id);
+            return;
+        }
 
         # Allow update if no results defined yet
         if (!array_key_exists('sp_results',  $_POST)) return;
@@ -53,7 +57,10 @@ class Croquet_Match_Report_Admin_Metaboxes {
                 }
             }
         }
-        if (!$found) return;
+        if (!$found) {
+            $this->make_updates($post_id);
+            return;
+        }
 
         $approval_count = get_post_meta($post_id, 'approval_count', true);
         $approval_count = "" === $approval_count ? 0 : $approval_count;
@@ -132,10 +139,11 @@ class Croquet_Match_Report_Admin_Metaboxes {
         }
 
         /*
-         *  No more errors possible so update approval count and hook the owner change
+         *  No more errors possible so update things and hook the owner change
          */
-        if ($approval_count == 1) $newowner = get_user_by('email', $this->options['final-owner'])->ID;
-        update_post_meta($post_id, 'approval_count', $approval_count + 1);
+        $this->make_updates($post_id);
+#        if ($approval_count == 1) $newowner = get_user_by('email', $this->options['final-owner'])->ID;
+#        update_post_meta($post_id, 'approval_count', $approval_count + 1);
 
         $args = ['newowner' => $newowner, 'post_id' => $post_id, 'league_name' => get_term($league_id)->name, 'code' => $code];
         add_action ('save_post_sp_event', function() use ($args) {$this->change_author($args);});
@@ -225,7 +233,7 @@ class Croquet_Match_Report_Admin_Metaboxes {
     public function add_metaboxes() {
 
         add_meta_box(
-            'croquet_match_report_players',  //Box id
+            'croquet_match_report_event_players',  //Box id
             apply_filters( $this->plugin_name . '-metabox-title-requirements', esc_html__( 'Players', 'croquet-match-report' ) ), // Box title
             array( $this, 'metabox' ), // Callback
             'sp_event',    // post types to have the metabox 
@@ -237,7 +245,7 @@ class Croquet_Match_Report_Admin_Metaboxes {
         );
 
         add_meta_box(
-            'croquet_match_report_games',  //Box id
+            'croquet_match_report_event_games',  //Box id
             apply_filters( $this->plugin_name . '-metabox-title-requirements', esc_html__( 'Games', 'croquet-match-report' ) ), // Box title
             array( $this, 'metabox' ), // Callback
             'sp_event',    // post types to have the metabox 

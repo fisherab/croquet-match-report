@@ -16,7 +16,7 @@ class Croquet_Match_Report_Admin {
     public function __construct( $plugin_name, $version ) {
         $this->plugin_name = $plugin_name;
         $this->version = $version;
-        $this->set_options();
+        $this->options = get_option( $this->plugin_name . '-options' );
     }
 
     /**
@@ -61,13 +61,6 @@ class Croquet_Match_Report_Admin {
      */
     public function page_options() {
         include( plugin_dir_path( __FILE__ ) . 'partials/croquet-match-report-admin-page-settings.php' );
-    }
-
-    /**
-     * Sets the class variable $options
-     */
-    private function set_options() {
-        $this->options = get_option( $this->plugin_name . '-options' );
     }
 
     /**
